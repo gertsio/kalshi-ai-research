@@ -73,6 +73,8 @@ class Evidence(BaseModel):
     claim: NonEmptyString
     source_title: NonEmptyString = Field(alias="sourceTitle")
     source_url: AnyUrl | None = Field(default=None, alias="sourceUrl")
+    context: NonEmptyString | None = None
+    source_published_at: datetime | None = Field(default=None, alias="sourcePublishedAt")
     relevance: BoundedLevel
 
     model_config = ConfigDict(populate_by_name=True)
