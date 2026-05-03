@@ -6,7 +6,7 @@ import { DemoStateBar } from "@/components/demo-state-bar";
 import { ErrorPlaceholder } from "@/components/error-placeholder";
 import { IdleView } from "@/components/idle-view";
 import { LoadingView } from "@/components/loading-view";
-import { SuccessPlaceholder } from "@/components/success-placeholder";
+import { ResearchMemo } from "@/components/research-memo";
 
 import { demoWorkflowResponse } from "@/contracts/workflow/fixtures/demo-workflow-response";
 import { useResearchMemo } from "@/features/research-memo/use-research-memo";
@@ -77,7 +77,7 @@ function renderView(
     case "submitting":
       return <LoadingView marketInput={state.marketInput} />;
     case "success":
-      return <SuccessPlaceholder response={state.response} />;
+      return <ResearchMemo response={state.response} />;
     case "error":
       return (
         <ErrorPlaceholder

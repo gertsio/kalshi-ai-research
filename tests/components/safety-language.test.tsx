@@ -5,7 +5,7 @@ import { DisclaimerStrip, DISCLAIMER_TEXT } from "@/components/disclaimer-strip"
 import { ErrorPlaceholder } from "@/components/error-placeholder";
 import { IdleView } from "@/components/idle-view";
 import { LoadingView } from "@/components/loading-view";
-import { SuccessPlaceholder } from "@/components/success-placeholder";
+import { ResearchMemo } from "@/components/research-memo";
 
 import { demoWorkflowResponse } from "@/contracts/workflow/fixtures/demo-workflow-response";
 
@@ -30,8 +30,10 @@ describe("research-only safety language", () => {
     expect(container.textContent ?? "").not.toMatch(ADVICE_VERBS);
   });
 
-  it("success placeholder does not contain advice verbs", () => {
-    const { container } = render(<SuccessPlaceholder response={demoWorkflowResponse} />);
+  it("research memo does not contain advice verbs outside the disclaimer", () => {
+    const { container } = render(<ResearchMemo response={demoWorkflowResponse} />);
+    const disclaimer = container.querySelector('[data-testid="memo-disclaimer"]');
+    disclaimer?.remove();
     expect(container.textContent ?? "").not.toMatch(ADVICE_VERBS);
   });
 
