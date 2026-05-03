@@ -13,6 +13,49 @@ export function formatDeltaPoints(delta: number): string {
   return `${sign}${points}pp`;
 }
 
+export const directionLabel: Record<WorkflowResponse["delta"]["direction"], string> = {
+  agent_higher: "Agent higher",
+  agent_lower: "Agent lower",
+  in_line: "In line with market",
+};
+
+export const directionGlyph: Record<WorkflowResponse["delta"]["direction"], string> = {
+  agent_higher: "↑",
+  agent_lower: "↓",
+  in_line: "→",
+};
+
+export const severityRank: Record<"low" | "medium" | "high", number> = {
+  low: 1,
+  medium: 2,
+  high: 3,
+};
+
+export const warningKindLabel: Record<"liquidity" | "staleness" | "data_quality", string> = {
+  liquidity: "Liquidity",
+  staleness: "Staleness",
+  data_quality: "Data quality",
+};
+
+export const traceStatusLabel: Record<"completed" | "skipped" | "failed", string> = {
+  completed: "Completed",
+  skipped: "Skipped",
+  failed: "Failed",
+};
+
+export function formatAnalyzedAt(isoString: string): string {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return isoString;
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+}
+
 /** Lightweight headline extraction for the success placeholder. The full
  * memo render belongs to a follow-up issue. */
 export interface HeadlineViewModel {

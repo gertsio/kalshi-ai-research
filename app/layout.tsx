@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { DisclaimerStrip } from "@/components/disclaimer-strip";
@@ -11,6 +11,14 @@ const inter = Inter({
   display: "swap",
 });
 
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Kalshi AI Research — research-only market analysis",
   description:
@@ -19,7 +27,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn(inter.variable)}>
+    <html lang="en" className={cn(inter.variable, instrumentSerif.variable)}>
       <body className="flex min-h-screen flex-col font-sans">
         <SiteHeader />
         <main className="flex flex-1 flex-col">{children}</main>
