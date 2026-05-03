@@ -21,8 +21,8 @@ export function MarketInput({ defaultValue = "", onSubmit, disabled = false }: P
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3" aria-label="Submit a Kalshi market">
-      <label className="eyebrow" htmlFor="market-input">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2" aria-label="Submit a Kalshi market">
+      <label className="sr-only" htmlFor="market-input">
         Market URL or ticker
       </label>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
@@ -33,23 +33,19 @@ export function MarketInput({ defaultValue = "", onSubmit, disabled = false }: P
           spellCheck={false}
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="KXEXAMPLE-26MAY03-DEMO  ·  https://kalshi.com/markets/…"
-          className="border-rule bg-background h-11 flex-1 rounded-none font-mono text-sm tracking-tight"
+          placeholder="Paste a Kalshi market URL or ticker"
+          className="h-12 flex-1 text-base"
           disabled={disabled}
         />
         <Button
           type="submit"
           size="lg"
-          className="h-11 rounded-none px-5 font-mono tracking-[0.12em] uppercase"
+          className="h-12 px-6 text-sm font-medium"
           disabled={disabled || value.trim().length === 0}
         >
-          Run research
+          Research
         </Button>
       </div>
-      <p className="text-muted-foreground font-serif text-xs italic">
-        Submitting will eventually call the agent workflow. In this scaffold, use the demo state controls
-        above to preview the four states.
-      </p>
     </form>
   );
 }
