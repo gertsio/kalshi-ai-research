@@ -1,6 +1,6 @@
 # Kalshi Research Swarm
 
-![Kalshi AI Research cover](assets/readme-cover.svg)
+![Kalshi AI Research cover](assets/readme-cover.jpg)
 
 Research-only prediction-market analysis for Kalshi markets, powered by a typed Next.js frontend and a separate Python workflow runtime.
 
