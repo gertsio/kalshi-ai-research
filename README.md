@@ -1,5 +1,7 @@
 # Kalshi Research Swarm
 
+![Kalshi AI Research cover](assets/readme-cover.svg)
+
 Research-only prediction-market analysis for Kalshi markets, powered by a typed Next.js frontend and a separate Python workflow runtime.
 
 Kalshi Research Swarm compares Kalshi's market-implied probability with an agent-generated estimate, then frames the difference with evidence, counterarguments, settlement risks, warnings, and a concise memo. It is built as a hackathon-friendly prototype with strict contracts and deterministic demo behavior.
