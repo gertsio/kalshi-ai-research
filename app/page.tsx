@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { DemoStateBar } from "@/components/demo-state-bar";
 import { ErrorPlaceholder } from "@/components/error-placeholder";
 import { IdleView } from "@/components/idle-view";
@@ -11,6 +13,11 @@ import { useResearchMemo } from "@/features/research-memo/use-research-memo";
 
 export default function Page() {
   const { state, submit, reset, setDemoState } = useResearchMemo();
+  const [showDemoBar, setShowDemoBar] = useState(false);
+
+  useEffect(() => {
+    setShowDemoBar(new URLSearchParams(window.location.search).get("demo") === "1");
+  }, []);
 
   const view = renderView(state, {
     onSubmit: submit,
@@ -20,8 +27,8 @@ export default function Page() {
 
   return (
     <>
-      <DemoStateBar current={state.kind} onSelect={setDemoState} />
-      <div className="mx-auto w-full max-w-6xl flex-1 px-6 py-12 sm:px-10 sm:py-16">{view}</div>
+      {showDemoBar ? <DemoStateBar current={state.kind} onSelect={setDemoState} /> : null}
+      <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-12 sm:px-8 sm:py-16">{view}</div>
     </>
   );
 }

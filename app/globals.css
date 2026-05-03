@@ -2,14 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
-  --font-sans: var(--font-serif-body);
-  --font-serif: var(--font-serif-body);
-  --font-mono: var(--font-monospace);
-  --font-display: var(--font-serif-display);
-  --font-heading: var(--font-serif-display);
+  --font-sans: var(--font-inter);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -41,9 +35,6 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --color-signal: var(--signal);
-  --color-signal-soft: var(--signal-soft);
-  --color-rule: var(--rule);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -53,46 +44,39 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Research Journal × Terminal — dark canvas, warm cream paper, amber phosphor accent.
-   We render in dark mode by default. The :root values mirror .dark so SSR is consistent. */
-:root,
-.dark {
-  --background: oklch(0.16 0.006 270);
-  --foreground: oklch(0.92 0.018 80);
-  --card: oklch(0.2 0.006 270);
-  --card-foreground: oklch(0.92 0.018 80);
-  --popover: oklch(0.2 0.006 270);
-  --popover-foreground: oklch(0.92 0.018 80);
-  --primary: oklch(0.82 0.115 75);
-  --primary-foreground: oklch(0.16 0.006 270);
-  --secondary: oklch(0.24 0.006 270);
-  --secondary-foreground: oklch(0.92 0.018 80);
-  --muted: oklch(0.22 0.006 270);
-  --muted-foreground: oklch(0.62 0.012 80);
-  --accent: oklch(0.26 0.006 270);
-  --accent-foreground: oklch(0.92 0.018 80);
-  --destructive: oklch(0.66 0.17 30);
-  --border: oklch(0.3 0.006 270);
-  --input: oklch(0.24 0.006 270);
-  --ring: oklch(0.82 0.115 75);
-  --chart-1: oklch(0.82 0.115 75);
-  --chart-2: oklch(0.62 0.012 80);
-  --chart-3: oklch(0.5 0.06 240);
-  --chart-4: oklch(0.66 0.17 30);
-  --chart-5: oklch(0.45 0.04 80);
-  --radius: 0.125rem;
-  --sidebar: oklch(0.18 0.006 270);
-  --sidebar-foreground: oklch(0.92 0.018 80);
-  --sidebar-primary: oklch(0.82 0.115 75);
-  --sidebar-primary-foreground: oklch(0.16 0.006 270);
-  --sidebar-accent: oklch(0.24 0.006 270);
-  --sidebar-accent-foreground: oklch(0.92 0.018 80);
-  --sidebar-border: oklch(0.3 0.006 270);
-  --sidebar-ring: oklch(0.82 0.115 75);
-
-  --signal: oklch(0.82 0.115 75);
-  --signal-soft: oklch(0.82 0.115 75 / 0.12);
-  --rule: oklch(0.3 0.006 270);
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.18 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0 0);
+  --primary: oklch(0.18 0 0);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.18 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.18 0 0);
+  --destructive: oklch(0.6 0.2 25);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.18 0 0);
+  --chart-1: oklch(0.18 0 0);
+  --chart-2: oklch(0.5 0 0);
+  --chart-3: oklch(0.7 0 0);
+  --chart-4: oklch(0.85 0 0);
+  --chart-5: oklch(0.92 0 0);
+  --radius: 0.375rem;
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.18 0 0);
+  --sidebar-primary: oklch(0.18 0 0);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.18 0 0);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.18 0 0);
 }
 
 @layer base {
@@ -100,39 +84,10 @@
     @apply border-border outline-ring/50;
   }
   html {
-    @apply font-serif;
     background: var(--background);
     color: var(--foreground);
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01", "ss02";
   }
-  h1,
-  h2,
-  h3,
-  h4 {
-    @apply font-display;
-    font-feature-settings: "dlig", "ss01";
-    letter-spacing: -0.015em;
-  }
-  code,
-  kbd,
-  pre,
-  samp,
-  .mono {
-    @apply font-mono;
-  }
-  ::selection {
-    background: var(--signal);
-    color: var(--background);
-  }
-}
-
-@utility eyebrow {
-  @apply text-muted-foreground font-mono text-[0.7rem] tracking-[0.18em] uppercase;
-}
-
-@utility hairline {
-  @apply border-rule border-t;
 }

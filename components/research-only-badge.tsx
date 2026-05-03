@@ -3,10 +3,10 @@ export function ResearchOnlyBadge() {
     <span
       role="note"
       aria-label="This is research-only. Not financial advice."
-      className="border-signal/40 text-signal inline-flex items-center gap-2 border px-2 py-1 font-mono text-[0.65rem] tracking-[0.18em] uppercase"
+      className="border-border text-muted-foreground inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs"
     >
-      <span aria-hidden className="bg-signal size-1.5 animate-pulse rounded-full" />
-      Research-only
+      <span aria-hidden className="bg-muted-foreground size-1.5 rounded-full" />
+      Research only
     </span>
   );
 }

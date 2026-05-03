@@ -21,25 +21,22 @@ const options: ReadonlyArray<{ kind: DemoKind; label: string }> = [
 
 export function DemoStateBar({ current, onSelect }: Props) {
   return (
-    <div role="toolbar" aria-label="Demo state controls" className="border-rule bg-muted/30 border-b">
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-6 py-2 sm:px-10">
-        <span className="eyebrow">Demo states</span>
-        <div className="flex flex-wrap items-center gap-1.5">
+    <div role="toolbar" aria-label="Demo state controls" className="border-border bg-muted border-b">
+      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-3 px-6 py-2 sm:px-8">
+        <span className="text-muted-foreground text-xs">Demo states</span>
+        <div className="flex flex-wrap items-center gap-1">
           {options.map(({ kind, label }) => (
             <Button
               key={kind}
               variant={current === kind ? "secondary" : "ghost"}
-              size="xs"
-              className={cn("font-mono tracking-[0.12em] uppercase", current === kind && "text-foreground")}
+              size="sm"
+              className={cn("h-7 text-xs", current === kind && "text-foreground")}
               onClick={() => onSelect(stateFor(kind))}
             >
               {label}
             </Button>
           ))}
         </div>
-        <span className="text-muted-foreground ml-auto font-mono text-[0.7rem]">
-          No live workflow yet — these triggers exist so the four states are demoable.
-        </span>
       </div>
     </div>
   );
