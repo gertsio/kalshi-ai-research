@@ -101,6 +101,36 @@ describe("workflow response contract", () => {
     expect(result.error?.issues.some((issue) => issue.path.join(".") === "disclaimer")).toBe(true);
   });
 
+  it("rejects weak research-only disclaimers that do not reject advice and recommendations", () => {
+    const result = validateWorkflowResponse({
+      ...demoWorkflowResponse,
+      disclaimer: "Research output only.",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.path.join(".") === "disclaimer")).toBe(true);
+  });
+
+  it("rejects direct recommendation phrasing in workflow-authored output", () => {
+    const result = validateWorkflowResponse({
+      ...demoWorkflowResponse,
+      finalMemoMarkdown: "## Research Memo\n\nYou should buy this market now.",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.path.join(".") === "finalMemoMarkdown")).toBe(true);
+  });
+
+  it("rejects direct recommendation phrasing with recommend wording", () => {
+    const result = validateWorkflowResponse({
+      ...demoWorkflowResponse,
+      finalMemoMarkdown: "## Research Memo\n\nWe recommend sell based on this evidence.",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.path.join(".") === "finalMemoMarkdown")).toBe(true);
+  });
+
   it("requires all six named agent trace roles", () => {
     const result = validateWorkflowResponse({
       ...demoWorkflowResponse,

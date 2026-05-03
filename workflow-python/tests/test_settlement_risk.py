@@ -82,9 +82,9 @@ def _market_data(
             closeTime=close_time,
             settlementSource=settlement_source,
         ),
-        impliedProbability=0.5,
-        prices=PriceContext(yesBid=0.48, yesAsk=0.52, lastPrice=0.5, spread=0.04),
+        implied_probability=0.5,
+        prices=PriceContext(yes_bid=0.48, yes_ask=0.52, last_price=0.5, spread=0.04),
         volume=1000,
-        openInterest=500,
+        open_interest=500,
         warnings=[],
     )

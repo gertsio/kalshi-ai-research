@@ -48,7 +48,7 @@ export default function Page() {
   }, [state.kind]);
 
   const view = renderView(state, {
-    onSubmit: submit,
+    onSubmit: (marketInput) => submit(marketInput, { demoMode: showDemoBar }),
     onReset: reset,
     onLoadDemo: () => setDemoState({ kind: "success", response: demoWorkflowResponse }),
   });

@@ -112,9 +112,10 @@ curl -X POST http://127.0.0.1:8000/analyze \
 Root `.env.example`:
 
 ```bash
-GEMINI_API_KEY=""
-TAVILY_API_KEY=""
+NEXT_PUBLIC_WORKFLOW_ENDPOINT="http://127.0.0.1:8000/analyze"
 ```
+
+The frontend only needs `NEXT_PUBLIC_WORKFLOW_ENDPOINT`. Do not put Gemini, Tavily, Kalshi private, or other secret-bearing API keys in root browser-facing environment variables.
 
 Workflow service settings use the `WORKFLOW_` prefix from `workflow-python/app/core/config.py`:
 
@@ -197,4 +198,4 @@ The TypeScript contract lives in `contracts/workflow/workflow-contract.ts`. The 
 
 ## Current Status
 
-This repository is an MVP prototype. The frontend currently renders idle, loading, error, and validated-success placeholder states. The Python workflow API exposes `GET /health` and `POST /analyze`, with deterministic demo mode available immediately and live-market seams for Kalshi public data and Tavily evidence search.
+This repository is an MVP prototype. The frontend renders idle, loading, explicit error, and validated research-memo success states. The Python workflow API exposes `GET /health` and `POST /analyze`, with deterministic demo mode available immediately and live-market seams for Kalshi public data and Tavily evidence search.

@@ -64,3 +64,19 @@ def test_response_contract_rejects_trading_advice_disclaimer() -> None:
 
     with pytest.raises(ValidationError, match="Disclaimer"):
         WorkflowResponse.model_validate(payload)
+
+
+def test_response_contract_rejects_direct_buy_recommendation_output() -> None:
+    payload = copy.deepcopy(DEMO_WORKFLOW_RESPONSE)
+    payload["finalMemoMarkdown"] = "## Research Memo\n\nYou should buy this market now."
+
+    with pytest.raises(ValidationError, match="recommendation"):
+        WorkflowResponse.model_validate(payload)
+
+
+def test_response_contract_rejects_direct_sell_recommendation_output() -> None:
+    payload = copy.deepcopy(DEMO_WORKFLOW_RESPONSE)
+    payload["finalMemoMarkdown"] = "## Research Memo\n\nWe recommend sell based on this evidence."
+
+    with pytest.raises(ValidationError, match="recommendation"):
+        WorkflowResponse.model_validate(payload)
