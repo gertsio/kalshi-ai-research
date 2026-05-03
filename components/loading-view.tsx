@@ -30,7 +30,7 @@ export function LoadingView({ marketInput }: Props) {
               key={agent.role}
               className="border-border flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
             >
-              <span aria-hidden className="bg-emerald-300 size-2 shrink-0 animate-pulse rounded-full" />
+              <span aria-hidden className="bg-primary size-2 shrink-0 animate-pulse rounded-full" />
               <div className="flex flex-1 flex-col gap-0.5">
                 <span className="text-foreground text-sm font-medium">{agent.name}</span>
                 <span className="text-muted-foreground text-xs">{agent.note}</span>
