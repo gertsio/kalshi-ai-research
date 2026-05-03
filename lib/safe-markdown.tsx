@@ -14,8 +14,8 @@ type Block =
   | { kind: "paragraph"; text: string };
 
 const HEADING_CLASSES = {
-  h2: "font-heading text-foreground mb-3 text-2xl leading-tight font-normal first:mt-0",
-  h3: "font-heading text-foreground mt-6 mb-2 text-xl leading-snug font-normal italic first:mt-0",
+  h2: "text-foreground mb-3 text-2xl leading-tight font-semibold tracking-tight first:mt-0",
+  h3: "text-foreground mt-6 mb-2 text-xl leading-snug font-semibold tracking-tight first:mt-0",
 };
 
 export function SafeMarkdown({ source, className }: { source: string; className?: string }) {
