@@ -52,8 +52,11 @@ function MemoHeader({ response }: Props) {
           {market.ticker}
         </Badge>
         <Badge
-          variant={market.status === "open" ? "secondary" : "outline"}
-          className="text-[0.7rem] tracking-wide uppercase"
+          variant="outline"
+          className={cn(
+            "text-[0.7rem] tracking-wide uppercase",
+            market.status === "open" && "bg-accent text-accent-foreground border-transparent",
+          )}
         >
           {market.status}
         </Badge>
@@ -143,10 +146,10 @@ function Stat({
       <span className="text-muted-foreground text-[0.7rem] tracking-wide uppercase">{label}</span>
       <span
         className={cn(
-          "text-foreground tabular-nums",
+          "tabular-nums",
           emphasized
-            ? "font-heading text-[2.5rem] leading-none font-normal"
-            : "text-[1.75rem] leading-none font-medium",
+            ? "text-primary font-heading text-[2.5rem] leading-none font-normal"
+            : "text-foreground text-[1.75rem] leading-none font-medium",
         )}
       >
         {value}
@@ -378,7 +381,7 @@ function AgentTrace({ response }: Props) {
 }
 
 function traceDotClass(status: "completed" | "skipped" | "failed"): string {
-  if (status === "completed") return "bg-foreground";
+  if (status === "completed") return "bg-primary";
   if (status === "skipped") return "bg-muted-foreground/40";
   return "bg-destructive";
 }
