@@ -110,95 +110,22 @@ function ProbabilityComparison({ response }: Props) {
 
   return (
     <Section eyebrow="01" title="Probability comparison" data-testid="probability-comparison">
-      <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
-        <div className="divide-border grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          <Stat label="Kalshi implied" value={formatProbability(kalshi)} />
-          <Stat label="Agent estimate" value={formatProbability(agent)} emphasized />
-          <Stat
-            label={directionLabel[response.delta.direction]}
-            value={
-              <span className="inline-flex items-baseline gap-1.5">
-                <span aria-hidden className="text-foreground/60 text-2xl leading-none">
-                  {directionGlyph[response.delta.direction]}
-                </span>
-                <span>{formatDeltaPoints(deltaPoints)}</span>
+      <div className="grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-3">
+        <Stat label="Kalshi implied" value={formatProbability(kalshi)} />
+        <Stat label="Agent estimate" value={formatProbability(agent)} emphasized />
+        <Stat
+          label={directionLabel[response.delta.direction]}
+          value={
+            <span className="inline-flex items-baseline gap-1.5">
+              <span aria-hidden className="text-foreground/60 text-2xl leading-none">
+                {directionGlyph[response.delta.direction]}
               </span>
-            }
-          />
-        </div>
-        <Separator />
-        <ProbabilityTrack kalshi={kalshi} agent={agent} />
+              <span>{formatDeltaPoints(deltaPoints)}</span>
+            </span>
+          }
+        />
       </div>
-
-      {response.kalshi.spread !== undefined ||
-      response.kalshi.volume !== undefined ||
-      response.kalshi.openInterest !== undefined ? (
-        <dl className="text-muted-foreground mt-4 grid grid-cols-2 gap-x-8 gap-y-2 text-xs sm:grid-cols-4">
-          {response.kalshi.yesBid !== undefined ? (
-            <MetaRow label="Yes bid" value={formatProbability(response.kalshi.yesBid)} />
-          ) : null}
-          {response.kalshi.yesAsk !== undefined ? (
-            <MetaRow label="Yes ask" value={formatProbability(response.kalshi.yesAsk)} />
-          ) : null}
-          {response.kalshi.spread !== undefined ? (
-            <MetaRow label="Spread" value={formatProbability(response.kalshi.spread)} />
-          ) : null}
-          {response.kalshi.volume !== undefined ? (
-            <MetaRow label="Volume" value={response.kalshi.volume.toLocaleString()} />
-          ) : null}
-        </dl>
-      ) : null}
     </Section>
-  );
-}
-
-function ProbabilityTrack({ kalshi, agent }: { kalshi: number; agent: number }) {
-  return (
-    <div className="px-6 py-5">
-      <div className="text-muted-foreground mb-3 flex justify-between text-[0.7rem] tracking-wide uppercase">
-        <span>0%</span>
-        <span>50%</span>
-        <span>100%</span>
-      </div>
-      <div className="bg-muted relative h-1.5 w-full rounded-full">
-        <Marker position={kalshi} variant="kalshi" label="Kalshi" />
-        <Marker position={agent} variant="agent" label="Agent" />
-      </div>
-      <div className="mt-3 flex items-center gap-4 text-xs">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5">
-          <span aria-hidden className="bg-foreground/40 size-2 rounded-full" />
-          Kalshi {formatProbability(kalshi)}
-        </span>
-        <span className="text-muted-foreground inline-flex items-center gap-1.5">
-          <span aria-hidden className="bg-foreground size-2 rounded-sm" />
-          Agent {formatProbability(agent)}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function Marker({
-  position,
-  variant,
-  label,
-}: {
-  position: number;
-  variant: "kalshi" | "agent";
-  label: string;
-}) {
-  const left = `${Math.max(0, Math.min(1, position)) * 100}%`;
-  return (
-    <span
-      aria-label={`${label} ${formatProbability(position)}`}
-      className={cn(
-        "absolute top-1/2 -translate-x-1/2 -translate-y-1/2",
-        variant === "agent"
-          ? "bg-foreground size-3 rounded-sm"
-          : "bg-foreground/40 ring-background size-2.5 rounded-full ring-2",
-      )}
-      style={{ left }}
-    />
   );
 }
 
@@ -212,7 +139,7 @@ function Stat({
   emphasized?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-1.5 px-6 py-5">
+    <div className="flex flex-col gap-2">
       <span className="text-muted-foreground text-[0.7rem] tracking-wide uppercase">{label}</span>
       <span
         className={cn(

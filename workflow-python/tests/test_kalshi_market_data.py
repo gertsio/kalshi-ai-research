@@ -97,6 +97,43 @@ async def test_missing_orderbook_data_does_not_crash_and_warns() -> None:
 
 
 @pytest.mark.asyncio
+async def test_event_ticker_resolves_to_most_liquid_child_market() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/markets/KXNEXTAG-29":
+            return httpx.Response(404, json={"error": {"code": "not_found"}})
+        if request.url.path == "/events/KXNEXTAG-29":
+            return httpx.Response(
+                200,
+                json={
+                    "event": {"event_ticker": "KXNEXTAG-29", "title": "Who will be next AG?"},
+                    "markets": [
+                        _market(
+                            ticker="KXNEXTAG-29-LZEL", subtitle=None, yes_sub_title="Lee Zeldin", volume_24h_fp="10.00"
+                        )[
+                            "market"
+                        ],
+                        _market(
+                            ticker="KXNEXTAG-29-TBLA", subtitle=None, yes_sub_title="Todd Blanche", volume_24h_fp="100.00"
+                        )[
+                            "market"
+                        ],
+                    ],
+                },
+            )
+        if request.url.path == "/markets/KXNEXTAG-29-TBLA/orderbook":
+            return httpx.Response(200, json=_orderbook())
+        return httpx.Response(404, json={"error": {"code": "not_found"}})
+
+    tool = KalshiPublicMarketDataTool(base_url="https://kalshi.test", transport=httpx.MockTransport(handler))
+
+    result = await tool.fetch("KXNEXTAG-29", now=datetime(2026, 5, 3, tzinfo=UTC))
+
+    assert result.market.ticker == "KXNEXTAG-29-TBLA"
+    assert result.market.subtitle == "Todd Blanche"
+    assert result.implied_probability == 0.44
+
+
+@pytest.mark.asyncio
 async def test_thin_liquidity_warning_uses_volume_and_top_of_book() -> None:
     tool, _requests = _tool(
         {

@@ -79,14 +79,14 @@ class KalshiPublicMarketDataTool:
         async with httpx.AsyncClient(
             base_url=self._base_url, timeout=self._timeout_seconds, transport=self._transport
         ) as client:
-            market_payload = await self._get_json(client, f"/markets/{normalized_ticker}")
-            orderbook_payload = await self._get_optional_json(client, f"/markets/{normalized_ticker}/orderbook")
-
-        market = market_payload.get("market", market_payload)
-        if not isinstance(market, dict):
-            raise WorkflowError(
-                ErrorCode.MARKET_DATA_UNAVAILABLE, "Kalshi market response was malformed.", status_code=502
-            )
+            market_payload = await self._get_market_or_event_json(client, normalized_ticker)
+            market = market_payload.get("market", market_payload)
+            if not isinstance(market, dict):
+                raise WorkflowError(
+                    ErrorCode.MARKET_DATA_UNAVAILABLE, "Kalshi market response was malformed.", status_code=502
+                )
+            resolved_ticker = str(market.get("ticker") or normalized_ticker)
+            orderbook_payload = await self._get_optional_json(client, f"/markets/{resolved_ticker}/orderbook")
 
         orderbook = _summarize_orderbook(orderbook_payload)
         prices = _price_context(market)
@@ -113,6 +113,18 @@ class KalshiPublicMarketDataTool:
             orderbook=orderbook,
             warnings=warnings,
         )
+
+    async def _get_market_or_event_json(self, client: httpx.AsyncClient, ticker: str) -> dict[str, Any]:
+        try:
+            return await self._get_json(client, f"/markets/{ticker}")
+        except WorkflowError as market_error:
+            event_payload = await self._get_optional_json(client, f"/events/{ticker}")
+            if event_payload is None:
+                raise market_error
+            market = _representative_event_market(event_payload)
+            if market is None:
+                raise market_error
+            return {"market": market}
 
     async def _get_json(self, client: httpx.AsyncClient, path: str) -> dict[str, Any]:
         try:
@@ -143,6 +155,26 @@ def _price_context(market: dict[str, Any]) -> PriceContext:
     raw_spread = yes_ask - yes_bid if yes_bid is not None and yes_ask is not None else None
     spread = raw_spread if raw_spread is None or raw_spread >= 0 else None
     return PriceContext(yesBid=yes_bid, yesAsk=yes_ask, lastPrice=last_price, spread=spread)
+
+
+def _representative_event_market(payload: dict[str, Any]) -> dict[str, Any] | None:
+    markets = payload.get("markets")
+    if not isinstance(markets, list):
+        return None
+    candidates = [market for market in markets if isinstance(market, dict)]
+    if not candidates:
+        return None
+    open_markets = [market for market in candidates if _status(market.get("status")) == "open"]
+    return max(open_markets or candidates, key=_market_liquidity_score)
+
+
+def _market_liquidity_score(market: dict[str, Any]) -> Decimal:
+    scores = [
+        _fixed_point_count(market.get("volume_24h_fp")),
+        _fixed_point_count(market.get("volume_fp") or market.get("volume")),
+        _fixed_point_count(market.get("open_interest_fp") or market.get("open_interest")),
+    ]
+    return sum((score for score in scores if score is not None), Decimal("0"))
 
 
 def _implied_probability(prices: PriceContext) -> float:
