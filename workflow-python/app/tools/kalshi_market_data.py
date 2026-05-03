@@ -140,7 +140,8 @@ def _price_context(market: dict[str, Any]) -> PriceContext:
     yes_bid = _probability(market.get("yes_bid_dollars") or market.get("yes_bid"))
     yes_ask = _probability(market.get("yes_ask_dollars") or market.get("yes_ask"))
     last_price = _probability(market.get("last_price_dollars") or market.get("last_price"))
-    spread = yes_ask - yes_bid if yes_bid is not None and yes_ask is not None else None
+    raw_spread = yes_ask - yes_bid if yes_bid is not None and yes_ask is not None else None
+    spread = raw_spread if raw_spread is None or raw_spread >= 0 else None
     return PriceContext(yesBid=yes_bid, yesAsk=yes_ask, lastPrice=last_price, spread=spread)
 
 
@@ -217,6 +218,14 @@ def _warnings(
     if prices.spread is not None and prices.spread >= 0.1:
         warnings.append(
             Warning(kind="liquidity", message="Kalshi best bid/ask spread is wide.", severity=BoundedLevel.MEDIUM)
+        )
+    if prices.yes_bid is not None and prices.yes_ask is not None and prices.yes_bid > prices.yes_ask:
+        warnings.append(
+            Warning(
+                kind="liquidity",
+                message="Kalshi best bid is above best ask; quote may be transiently crossed.",
+                severity=BoundedLevel.MEDIUM,
+            )
         )
     if _status(market.get("status")) != "open" or (close_time is not None and close_time <= now):
         warnings.append(

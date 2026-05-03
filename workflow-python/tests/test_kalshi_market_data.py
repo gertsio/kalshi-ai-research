@@ -111,6 +111,22 @@ async def test_thin_liquidity_warning_uses_volume_and_top_of_book() -> None:
 
 
 @pytest.mark.asyncio
+async def test_crossed_quote_does_not_fail_validation_and_warns() -> None:
+    tool, _requests = _tool(
+        {
+            "/markets/KXEXAMPLE-26MAY03-DEMO": _market(yes_bid_dollars="0.6200", yes_ask_dollars="0.5800"),
+            "/markets/KXEXAMPLE-26MAY03-DEMO/orderbook": _orderbook(),
+        }
+    )
+
+    result = await tool.fetch("KXEXAMPLE-26MAY03-DEMO", now=datetime(2026, 5, 3, tzinfo=UTC))
+
+    assert result.implied_probability == 0.6
+    assert result.prices.spread is None
+    assert any(warning.kind == "liquidity" for warning in result.warnings)
+
+
+@pytest.mark.asyncio
 async def test_stale_market_warning_uses_status_and_close_time() -> None:
     tool, _requests = _tool(
         {
