@@ -113,7 +113,10 @@ async def test_event_ticker_resolves_to_most_liquid_child_market() -> None:
                             "market"
                         ],
                         _market(
-                            ticker="KXNEXTAG-29-TBLA", subtitle=None, yes_sub_title="Todd Blanche", volume_24h_fp="100.00"
+                            ticker="KXNEXTAG-29-TBLA",
+                            subtitle=None,
+                            yes_sub_title="Todd Blanche",
+                            volume_24h_fp="100.00",
                         )[
                             "market"
                         ],
