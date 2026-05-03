@@ -1,13 +1,55 @@
 import { describe, expect, it } from "vitest";
 
 import { demoWorkflowResponse } from "../../contracts/workflow/fixtures/demo-workflow-response.js";
-import { validateWorkflowResponse } from "../../contracts/workflow/workflow-contract.js";
+import { validateWorkflowResponse, workflowRequestSchema } from "../../contracts/workflow/workflow-contract.js";
+
+describe("workflow request contract", () => {
+  it("accepts a market ticker request", () => {
+    const result = workflowRequestSchema.safeParse({
+      marketInput: "KXEXAMPLE-26MAY03-DEMO",
+      requestedAt: "2026-05-03T12:00:00.000Z",
+      demoMode: true,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects missing market input", () => {
+    const result = workflowRequestSchema.safeParse({ demoMode: true });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.path.join(".") === "marketInput")).toBe(true);
+  });
+
+  it("rejects blank market input", () => {
+    const result = workflowRequestSchema.safeParse({ marketInput: "   " });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.path.join(".") === "marketInput")).toBe(true);
+  });
+
+  it("rejects invalid request timestamps", () => {
+    const result = workflowRequestSchema.safeParse({
+      marketInput: "KXEXAMPLE-26MAY03-DEMO",
+      requestedAt: "today",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.path.join(".") === "requestedAt")).toBe(true);
+  });
+});
 
 describe("workflow response contract", () => {
   it("accepts the complete demo fixture", () => {
     const result = validateWorkflowResponse(demoWorkflowResponse);
 
     expect(result.success).toBe(true);
+  });
+
+  it("includes frontend-critical staleness and raw JSON inspection fields", () => {
+    expect(demoWorkflowResponse.warnings.some((warning) => warning.kind === "staleness")).toBe(true);
+    expect(demoWorkflowResponse.developer.rawJsonInspectionEnabled).toBe(true);
+    expect(demoWorkflowResponse.developer.rawJsonLabel).toBe("Validated workflow response JSON");
   });
 
   it("rejects missing required fields", () => {

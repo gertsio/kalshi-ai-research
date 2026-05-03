@@ -82,6 +82,10 @@ export const workflowResponseSchema = z
       }),
     ),
     finalMemoMarkdown: z.string().min(1),
+    developer: z.object({
+      rawJsonInspectionEnabled: z.boolean(),
+      rawJsonLabel: z.string().min(1),
+    }),
     disclaimer: z.string().min(1),
   })
   .superRefine((response, ctx) => {

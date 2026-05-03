@@ -64,6 +64,11 @@ export const demoWorkflowResponse: WorkflowResponse = {
       message: "The spread is narrow enough for a demo but should still be shown as market context, not advice.",
       severity: "low",
     },
+    {
+      kind: "staleness",
+      message: "The market snapshot is three minutes old and should be refreshed before live analysis.",
+      severity: "low",
+    },
   ],
   whatWouldChange: [
     "A materially different prerelease survey would lower the estimate.",
@@ -109,6 +114,10 @@ export const demoWorkflowResponse: WorkflowResponse = {
   ],
   finalMemoMarkdown:
     "## Research Memo\n\nThe agent estimate is 55% versus Kalshi's 42% implied probability. The gap is driven by recent comparable indicators, but confidence remains medium because settlement wording and late data revisions could change the analysis.",
+  developer: {
+    rawJsonInspectionEnabled: true,
+    rawJsonLabel: "Validated workflow response JSON",
+  },
   disclaimer:
     "This is research-only analysis, not financial advice or a recommendation to buy, sell, or place any trade.",
 };
