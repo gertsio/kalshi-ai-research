@@ -40,6 +40,12 @@ class GeminiProbabilityTool:
             raise WorkflowError(
                 ErrorCode.MODEL_FAILURE, "Gemini API key is required for live scoring.", status_code=503
             )
+        if self._api_key.startswith("sk-or-") and not _is_openai_compatible(self._base_url):
+            raise WorkflowError(
+                ErrorCode.MODEL_FAILURE,
+                "OpenRouter API keys require WORKFLOW_GEMINI_BASE_URL=https://openrouter.ai/api/v1.",
+                status_code=503,
+            )
 
         prompt = _prompt(
             market_title=market_title,
@@ -100,7 +106,7 @@ class GeminiProbabilityTool:
 
         return await client.post(
             f"{self._base_url}/models/{self._model}:generateContent",
-            params={"key": self._api_key},
+            headers={"x-goog-api-key": self._api_key},
             json={
                 "contents": [{"role": "user", "parts": [{"text": prompt}]}],
                 "generationConfig": {

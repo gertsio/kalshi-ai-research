@@ -35,6 +35,7 @@ function normalizeKalshiUrl(input: string): string | null {
 
   const ticker = segments
     .slice(marketIndex + 1)
-    .find((segment) => TICKER_PATTERN.test(segment.toUpperCase()));
+    .filter((segment) => TICKER_PATTERN.test(segment.toUpperCase()))
+    .at(-1);
   return ticker?.toUpperCase() ?? null;
 }

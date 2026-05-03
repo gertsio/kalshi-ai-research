@@ -16,6 +16,13 @@ describe("market input normalization", () => {
     ).toEqual({ marketInput: "KXEXAMPLE-26MAY03-DEMO", source: "url" });
   });
 
+  it("prefers the concrete market ticker over the series slug in Kalshi URLs", () => {
+    expect(normalizeMarketInput("https://kalshi.com/markets/kxmuskoai/elon-win-vs-open-ai/kxmuskoai-26")).toEqual({
+      marketInput: "KXMUSKOAI-26",
+      source: "url",
+    });
+  });
+
   it("rejects empty and non-Kalshi inputs", () => {
     expect(normalizeMarketInput("   ")).toBeNull();
     expect(normalizeMarketInput("https://example.com/markets/KXEXAMPLE-26MAY03-DEMO")).toBeNull();

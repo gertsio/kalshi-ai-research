@@ -127,6 +127,8 @@ Workflow service settings use the `WORKFLOW_` prefix from `workflow-python/app/c
 | `WORKFLOW_GEMINI_BASE_URL`    | Overrides the Gemini API base URL, including OpenRouter-compatible endpoints. |
 | `WORKFLOW_CORS_ALLOW_ORIGINS` | Overrides local frontend origins allowed by CORS. |
 
+For OpenRouter, use `WORKFLOW_GEMINI_BASE_URL="https://openrouter.ai/api/v1"` and an OpenRouter model id such as `WORKFLOW_GEMINI_MODEL="google/gemini-2.5-flash"`. OpenRouter keys do not work against Google's `generativelanguage.googleapis.com` endpoint.
+
 Local CORS allows `http://localhost:3000` and `http://127.0.0.1:3000` by default.
 
 ## Development Commands
