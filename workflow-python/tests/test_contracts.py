@@ -39,9 +39,28 @@ def test_response_contract_rejects_inconsistent_delta() -> None:
         WorkflowResponse.model_validate(payload)
 
 
+def test_response_contract_allows_in_line_direction_for_tiny_delta() -> None:
+    payload = copy.deepcopy(DEMO_WORKFLOW_RESPONSE)
+    payload["agentEstimate"]["probability"] = 0.4200005  # type: ignore[index]
+    payload["delta"]["probabilityPoints"] = 0  # type: ignore[index]
+    payload["delta"]["direction"] = "in_line"  # type: ignore[index]
+
+    response = WorkflowResponse.model_validate(payload)
+
+    assert response.delta.direction == "in_line"
+
+
 def test_response_contract_requires_research_disclaimer() -> None:
     payload = copy.deepcopy(DEMO_WORKFLOW_RESPONSE)
     payload["disclaimer"] = "Informational output."
+
+    with pytest.raises(ValidationError, match="Disclaimer"):
+        WorkflowResponse.model_validate(payload)
+
+
+def test_response_contract_rejects_trading_advice_disclaimer() -> None:
+    payload = copy.deepcopy(DEMO_WORKFLOW_RESPONSE)
+    payload["disclaimer"] = "This research is trading advice and a recommendation to place a trade."
 
     with pytest.raises(ValidationError, match="Disclaimer"):
         WorkflowResponse.model_validate(payload)

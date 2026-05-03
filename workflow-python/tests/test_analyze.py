@@ -42,3 +42,14 @@ def test_analyze_rejects_missing_market_input() -> None:
 
     assert response.status_code == 422
     assert response.json()["code"] == "invalid_input"
+
+
+def test_analyze_returns_typed_error_when_live_workflow_unavailable() -> None:
+    client = TestClient(create_app())
+
+    response = client.post("/analyze", json={"marketInput": "KXEXAMPLE-26MAY03-DEMO", "demoMode": False})
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["code"] == "workflow_unavailable"
+    assert payload["request_id"]

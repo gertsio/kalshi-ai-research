@@ -130,9 +130,10 @@ class WorkflowResponse(BaseModel):
         if abs(self.delta.probability_points - expected_delta) > 0.000001:
             raise ValueError("Delta must equal agent estimate minus Kalshi implied probability.")
 
-        expected_direction = (
-            "agent_higher" if expected_delta > 0 else "agent_lower" if expected_delta < 0 else "in_line"
-        )
+        if abs(expected_delta) <= 0.000001:
+            expected_direction = "in_line"
+        else:
+            expected_direction = "agent_higher" if expected_delta > 0 else "agent_lower"
         if self.delta.direction != expected_direction:
             raise ValueError("Delta direction must match the signed probability delta.")
 
@@ -148,6 +149,11 @@ class WorkflowResponse(BaseModel):
     @classmethod
     def disclaimer_separates_research_from_advice(cls, value: str) -> str:
         lowered = value.lower()
-        if not any(token in lowered for token in ("research", "advice", "trade")):
+        has_research_boundary = "research" in lowered or "informational" in lowered
+        rejects_advice = any(
+            phrase in lowered for phrase in ("not financial advice", "not trading advice", "not advice")
+        )
+        rejects_trade = any(phrase in lowered for phrase in ("not a recommendation", "not trade", "place any trade"))
+        if not (has_research_boundary and rejects_advice and rejects_trade):
             raise ValueError("Disclaimer must clearly separate research from trading advice.")
         return value
