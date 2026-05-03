@@ -4,8 +4,7 @@ import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 
 import type { WorkflowResponse } from "@/contracts/workflow/workflow-contract";
 import {
@@ -65,11 +64,11 @@ function MemoHeader({ response }: Props) {
         </span>
       </div>
 
-      <h1 className="font-heading text-foreground text-3xl leading-tight font-normal sm:text-4xl">
+      <h1 className="text-foreground text-3xl font-semibold tracking-tight sm:text-4xl">
         {market.title}
       </h1>
       {market.subtitle ? (
-        <p className="text-muted-foreground font-serif text-base leading-relaxed italic">{market.subtitle}</p>
+        <p className="text-muted-foreground text-base leading-relaxed">{market.subtitle}</p>
       ) : null}
 
       <dl className="text-muted-foreground mt-2 grid grid-cols-1 gap-x-8 gap-y-2 text-xs sm:grid-cols-3">
@@ -112,7 +111,7 @@ function ProbabilityComparison({ response }: Props) {
   const deltaPoints = response.delta.probabilityPoints;
 
   return (
-    <Section eyebrow="01" title="Probability comparison" data-testid="probability-comparison">
+    <Section title="Probability comparison" data-testid="probability-comparison">
       <div className="grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-3">
         <Stat label="Kalshi implied" value={formatProbability(kalshi)} />
         <Stat label="Agent estimate" value={formatProbability(agent)} emphasized />
@@ -148,8 +147,8 @@ function Stat({
         className={cn(
           "tabular-nums",
           emphasized
-            ? "text-primary font-heading text-[2.5rem] leading-none font-normal"
-            : "text-foreground text-[1.75rem] leading-none font-medium",
+            ? "text-primary text-[2.5rem] leading-none font-semibold tracking-tight"
+            : "text-foreground text-[1.75rem] leading-none font-semibold tracking-tight",
         )}
       >
         {value}
@@ -160,14 +159,14 @@ function Stat({
 
 function ThesisAndAssumptions({ response }: Props) {
   return (
-    <Section eyebrow="02" title="Thesis" data-testid="thesis">
+    <Section title="Thesis" data-testid="thesis">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-muted-foreground text-[0.7rem] tracking-wide uppercase">Confidence</span>
         <Badge variant="secondary" className="text-[0.7rem] tracking-wide uppercase">
           {response.agentEstimate.confidence}
         </Badge>
       </div>
-      <p className="text-foreground font-serif text-xl leading-relaxed italic">
+      <p className="text-foreground text-lg leading-relaxed">
         {response.agentEstimate.thesis}
       </p>
       <div>
@@ -189,7 +188,7 @@ function ThesisAndAssumptions({ response }: Props) {
 function EvidenceList({ response }: Props) {
   if (response.evidence.length === 0) return null;
   return (
-    <Section eyebrow="03" title="Evidence" data-testid="evidence">
+    <Section title="Evidence" data-testid="evidence">
       <ol className="flex flex-col gap-0">
         {response.evidence.map((item, index) => (
           <li
@@ -245,7 +244,7 @@ function RelevancePip({ level }: { level: "low" | "medium" | "high" }) {
 function Counterarguments({ response }: Props) {
   if (response.counterarguments.length === 0) return null;
   return (
-    <Section eyebrow="04" title="Counterarguments" data-testid="counterarguments">
+    <Section title="Counterarguments" data-testid="counterarguments">
       <ul className="flex flex-col gap-3">
         {response.counterarguments.map((arg, index) => (
           <li
@@ -265,7 +264,7 @@ function RisksAndWarnings({ response }: Props) {
   const hasWarnings = response.warnings.length > 0;
   if (!hasRisks && !hasWarnings) return null;
   return (
-    <Section eyebrow="05" title="Risks &amp; data warnings" data-testid="risks-and-warnings">
+    <Section title="Risks &amp; data warnings" data-testid="risks-and-warnings">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {hasRisks ? (
           <div className="flex flex-col gap-3" data-testid="settlement-risks">
@@ -333,7 +332,7 @@ function SeverityBadge({ level }: { level: "low" | "medium" | "high" }) {
 
 function WhatWouldChange({ response }: Props) {
   return (
-    <Section eyebrow="06" title="What would change the estimate" data-testid="what-would-change">
+    <Section title="What would change the estimate" data-testid="what-would-change">
       <ul className="flex flex-col gap-2">
         {response.whatWouldChange.map((item, index) => (
           <li
@@ -353,7 +352,7 @@ function WhatWouldChange({ response }: Props) {
 
 function AgentTrace({ response }: Props) {
   return (
-    <Section eyebrow="07" title="Agent trace" data-testid="agent-trace">
+    <Section title="Agent trace" data-testid="agent-trace">
       <Card>
         <CardContent className="flex flex-col gap-0 p-0">
           {response.agentTrace.map((entry, index) => (
@@ -388,7 +387,7 @@ function traceDotClass(status: "completed" | "skipped" | "failed"): string {
 
 function FinalMemo({ response }: Props) {
   return (
-    <Section eyebrow="08" title="Final memo" data-testid="final-memo">
+    <Section title="Final memo" data-testid="final-memo">
       <div className="bg-card ring-foreground/10 rounded-xl px-6 py-7 ring-1 sm:px-8 sm:py-9">
         <SafeMarkdown source={response.finalMemoMarkdown} />
       </div>
@@ -429,7 +428,7 @@ function MemoDisclaimer({ response }: Props) {
   return (
     <aside
       data-testid="memo-disclaimer"
-      className="border-border text-muted-foreground border-t pt-6 font-serif text-xs leading-relaxed italic"
+      className="border-border text-muted-foreground border-t pt-6 text-xs leading-relaxed"
     >
       {response.disclaimer}
     </aside>
@@ -437,29 +436,17 @@ function MemoDisclaimer({ response }: Props) {
 }
 
 function Section({
-  eyebrow,
   title,
   children,
   ...rest
 }: {
-  eyebrow: string;
   title: React.ReactNode;
   children: React.ReactNode;
 } & Omit<React.HTMLAttributes<HTMLElement>, "title">) {
   return (
     <section className="flex flex-col gap-5" {...rest}>
-      <SectionHeading eyebrow={eyebrow} title={title} />
+      <h2 className="text-foreground text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
       <div className="flex flex-col gap-4">{children}</div>
     </section>
-  );
-}
-
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: React.ReactNode }) {
-  return (
-    <div className="flex items-baseline gap-3">
-      <span className="text-muted-foreground font-mono text-xs tabular-nums">{eyebrow}</span>
-      <Separator className="flex-1" />
-      <CardTitle className="font-heading text-foreground text-lg font-normal">{title}</CardTitle>
-    </div>
   );
 }
