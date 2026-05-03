@@ -6,9 +6,7 @@ from pydantic import ValidationError
 from app.contracts.workflow import (
     AgentRole,
     AgentTraceEntry,
-    BoundedLevel,
     Evidence,
-    SettlementRisk,
     WorkflowRequest,
     WorkflowResponse,
 )
@@ -18,6 +16,7 @@ from app.fixtures.demo_response import build_demo_response
 from app.tools.evidence_research import EvidenceResearchTool, EvidenceSearchResult, TavilySearchProvider
 from app.tools.kalshi_market_data import KalshiPublicMarketDataTool, PublicMarketData
 from app.tools.probability_scoring import ProbabilityScoringResult, score_probability
+from app.tools.settlement_risk import audit_settlement_risk
 
 
 class MarketDataTool(Protocol):
@@ -64,7 +63,7 @@ class WorkflowService:
             market_data = await self._market_data_tool.fetch(request.market_input, now=datetime.now(UTC))
             trace.append(_trace(AgentRole.MARKET_DATA, "Captured public Kalshi market data and price context."))
 
-            settlement_risks = _settlement_risks(market_data)
+            settlement_risks = audit_settlement_risk(market_data)
             trace.append(_trace(AgentRole.SETTLEMENT_RULES, "Reviewed settlement source and wording ambiguity."))
 
             research = await self._research_tool.gather(_research_query(market_data), max_results=5)
@@ -108,22 +107,6 @@ def get_workflow_service() -> WorkflowService:
 def _trace(role: AgentRole, summary: str) -> AgentTraceEntry:
     display_names = dict(AGENT_SEQUENCE)
     return AgentTraceEntry(role=role, display_name=display_names[role], summary=summary, status="completed")
-
-
-def _settlement_risks(market_data: PublicMarketData) -> list[SettlementRisk]:
-    if market_data.market.settlement_source:
-        return [
-            SettlementRisk(
-                risk="Settlement depends on the exact official source and market rules wording.",
-                severity=BoundedLevel.MEDIUM,
-            )
-        ]
-    return [
-        SettlementRisk(
-            risk="Market response did not include an explicit settlement source.",
-            severity=BoundedLevel.HIGH,
-        )
-    ]
 
 
 def _research_query(market_data: PublicMarketData) -> str:
