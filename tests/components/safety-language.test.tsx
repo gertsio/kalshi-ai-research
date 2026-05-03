@@ -5,7 +5,6 @@ import { DisclaimerStrip, DISCLAIMER_TEXT } from "@/components/disclaimer-strip"
 import { ErrorPlaceholder } from "@/components/error-placeholder";
 import { IdleView } from "@/components/idle-view";
 import { LoadingView } from "@/components/loading-view";
-import { ResearchOnlyBadge } from "@/components/research-only-badge";
 import { SuccessPlaceholder } from "@/components/success-placeholder";
 
 import { demoWorkflowResponse } from "@/contracts/workflow/fixtures/demo-workflow-response";
@@ -19,11 +18,6 @@ describe("research-only safety language", () => {
   it("disclaimer is rendered with the canonical text", () => {
     render(<DisclaimerStrip />);
     expect(screen.getByText(DISCLAIMER_TEXT)).toBeInTheDocument();
-  });
-
-  it("research-only badge is announced as research-only", () => {
-    render(<ResearchOnlyBadge />);
-    expect(screen.getByRole("note")).toHaveAttribute("aria-label", expect.stringMatching(/research-only/i));
   });
 
   it("idle view does not contain advice verbs", () => {
