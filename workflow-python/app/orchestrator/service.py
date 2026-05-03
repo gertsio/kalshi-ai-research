@@ -15,6 +15,7 @@ from app.contracts.workflow import (
 from app.core.config import get_settings
 from app.core.errors import ErrorCode, WorkflowError
 from app.fixtures.demo_response import build_demo_response
+from app.orchestrator.ag2_skeptic import Ag2SkepticCalibrator, SkepticCalibrator
 from app.tools.evidence_research import EvidenceResearchTool, EvidenceSearchResult, TavilySearchProvider
 from app.tools.gemini_probability import GeminiProbabilityTool
 from app.tools.kalshi_market_data import KalshiPublicMarketDataTool, PublicMarketData
@@ -60,11 +61,13 @@ class WorkflowService:
         market_data_tool: MarketDataTool | None = None,
         research_tool: ResearchTool | None = None,
         probability_tool: ProbabilityTool | None = None,
+        skeptic_calibrator: SkepticCalibrator | None = None,
         secrets: list[str] | None = None,
     ) -> None:
         self._market_data_tool = market_data_tool
         self._research_tool = research_tool
         self._probability_tool = probability_tool
+        self._skeptic_calibrator = skeptic_calibrator
         self._secrets = [secret for secret in secrets or [] if secret]
 
     async def analyze(self, request: WorkflowRequest) -> WorkflowResponse:
@@ -104,7 +107,19 @@ class WorkflowService:
                     warnings=market_data.warnings,
                 )
             trace.append(_trace(AgentRole.PROBABILITY_ESTIMATOR, "Produced a bounded probability estimate."))
-            trace.append(_trace(AgentRole.SKEPTIC, "Added counterarguments and change conditions."))
+            if self._skeptic_calibrator is None:
+                trace.append(_trace(AgentRole.SKEPTIC, "AG2 skeptic calibration is disabled.", status="skipped"))
+            else:
+                scoring = await self._skeptic_calibrator.calibrate(
+                    market_title=market_data.market.title,
+                    market_ticker=market_data.market.ticker,
+                    kalshi_implied_probability=market_data.implied_probability,
+                    draft=scoring,
+                    evidence=research.evidence,
+                    settlement_risks=settlement_risks,
+                    warnings=market_data.warnings,
+                )
+                trace.append(_trace(AgentRole.SKEPTIC, "Ran AG2 skeptic calibration on the draft estimate."))
             trace.append(_trace(AgentRole.MEMO_EDITOR, "Validated strict JSON response contract."))
 
             payload = _response_payload(market_data, scoring, research.evidence, trace)
@@ -133,17 +148,25 @@ def get_workflow_service() -> WorkflowService:
             base_url=settings.gemini_base_url,
         )
         secrets.append(settings.gemini_api_key)
+    skeptic_calibrator = None
+    if settings.ag2_enabled and settings.gemini_api_key:
+        skeptic_calibrator = Ag2SkepticCalibrator(
+            api_key=settings.gemini_api_key,
+            model=settings.gemini_model,
+            base_url=settings.gemini_base_url,
+        )
     return WorkflowService(
         market_data_tool=KalshiPublicMarketDataTool(),
         research_tool=research_tool,
         probability_tool=probability_tool,
+        skeptic_calibrator=skeptic_calibrator,
         secrets=secrets,
     )
 
 
-def _trace(role: AgentRole, summary: str) -> AgentTraceEntry:
+def _trace(role: AgentRole, summary: str, *, status: str = "completed") -> AgentTraceEntry:
     display_names = dict(AGENT_SEQUENCE)
-    return AgentTraceEntry(role=role, display_name=display_names[role], summary=summary, status="completed")
+    return AgentTraceEntry(role=role, display_name=display_names[role], summary=summary, status=status)
 
 
 def _research_query(market_data: PublicMarketData) -> str:

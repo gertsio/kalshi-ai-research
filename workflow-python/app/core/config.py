@@ -27,12 +27,17 @@ class Settings(BaseSettings):
     gemini_base_url: str = Field(
         default=GOOGLE_GEMINI_BASE_URL, validation_alias=AliasChoices("WORKFLOW_GEMINI_BASE_URL", "GEMINI_BASE_URL")
     )
+    ag2_enabled: bool = Field(default=False, validation_alias=AliasChoices("WORKFLOW_AG2_ENABLED", "AG2_ENABLED"))
 
     model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
 
     @model_validator(mode="after")
     def infer_openrouter_settings(self) -> "Settings":
-        if self.gemini_api_key and self.gemini_api_key.startswith("sk-or-") and self.gemini_base_url == GOOGLE_GEMINI_BASE_URL:
+        if (
+            self.gemini_api_key
+            and self.gemini_api_key.startswith("sk-or-")
+            and self.gemini_base_url == GOOGLE_GEMINI_BASE_URL
+        ):
             self.gemini_base_url = OPENROUTER_BASE_URL
             if "/" not in self.gemini_model:
                 self.gemini_model = f"google/{self.gemini_model}"

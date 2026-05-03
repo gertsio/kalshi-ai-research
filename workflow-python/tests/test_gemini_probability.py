@@ -40,7 +40,11 @@ async def test_google_gemini_key_is_sent_in_header_not_url() -> None:
                         "content": {
                             "parts": [
                                 {
-                                    "text": '{"probability":0.55,"confidence":"medium","thesis":"Balanced case.","assumptions":["Court timing remains unchanged."],"counterarguments":[],"whatWouldChange":["New docket activity."]}'
+                                    "text": (
+                                        '{"probability":0.55,"confidence":"medium","thesis":"Balanced case.",'
+                                        '"assumptions":["Court timing remains unchanged."],"counterarguments":[],'
+                                        '"whatWouldChange":["New docket activity."]}'
+                                    )
                                 }
                             ]
                         }
