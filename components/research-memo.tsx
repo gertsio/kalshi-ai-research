@@ -146,9 +146,8 @@ function Stat({
       <span
         className={cn(
           "tabular-nums",
-          emphasized
-            ? "text-primary text-[2.5rem] leading-none font-semibold tracking-tight"
-            : "text-foreground text-[1.75rem] leading-none font-semibold tracking-tight",
+          "text-[2.5rem] leading-none font-semibold tracking-tight",
+          emphasized ? "text-primary" : "text-foreground",
         )}
       >
         {value}
