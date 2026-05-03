@@ -39,6 +39,19 @@ describe("workflow client", () => {
     });
   });
 
+  it("maps unparsable successful responses to malformed workflow responses", async () => {
+    process.env.NEXT_PUBLIC_WORKFLOW_ENDPOINT = "https://workflow.example.test/analyze";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => Promise.reject(new SyntaxError("bad json")) }),
+    );
+
+    await expect(runWorkflow({ marketInput: "KXEXAMPLE-26MAY03-DEMO" })).resolves.toEqual({
+      ok: false,
+      failure: { reason: "malformed_response" },
+    });
+  });
+
   it("keeps demo fixture fallback explicit", async () => {
     process.env.NEXT_PUBLIC_WORKFLOW_ENDPOINT = undefined;
 

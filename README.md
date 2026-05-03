@@ -122,6 +122,9 @@ Workflow service settings use the `WORKFLOW_` prefix from `workflow-python/app/c
 | Variable                      | Purpose                                           |
 | ----------------------------- | ------------------------------------------------- |
 | `WORKFLOW_TAVILY_API_KEY`     | Enables live Tavily-backed evidence search.       |
+| `WORKFLOW_GEMINI_API_KEY`     | Enables live Gemini-backed probability analysis.  |
+| `WORKFLOW_GEMINI_MODEL`       | Overrides the Gemini model, default `gemini-2.5-flash`. |
+| `WORKFLOW_GEMINI_BASE_URL`    | Overrides the Gemini API base URL, including OpenRouter-compatible endpoints. |
 | `WORKFLOW_CORS_ALLOW_ORIGINS` | Overrides local frontend origins allowed by CORS. |
 
 Local CORS allows `http://localhost:3000` and `http://127.0.0.1:3000` by default.

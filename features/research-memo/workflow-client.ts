@@ -55,8 +55,10 @@ export async function runWorkflow({
 
     if (!response.ok) return { ok: false, failure: { reason: await mapHttpFailure(response) } };
 
-    const payload: unknown = await response.json();
-    const parsed = validateWorkflowResponse(payload);
+    const payload = await readSuccessPayload(response);
+    if (!payload.ok) return { ok: false, failure: { reason: "malformed_response" } };
+
+    const parsed = validateWorkflowResponse(payload.value);
     if (!parsed.success) return { ok: false, failure: { reason: "malformed_response" } };
 
     return { ok: true, response: parsed.data };
@@ -67,6 +69,14 @@ export async function runWorkflow({
     return { ok: false, failure: { reason: "workflow_unavailable" } };
   } finally {
     globalThis.clearTimeout(timeout);
+  }
+}
+
+async function readSuccessPayload(response: Response): Promise<{ ok: true; value: unknown } | { ok: false }> {
+  try {
+    return { ok: true, value: await response.json() };
+  } catch {
+    return { ok: false };
   }
 }
 

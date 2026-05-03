@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
+from pytest import MonkeyPatch
 
+from app.core.config import get_settings
 from app.main import create_app
 
 
@@ -44,7 +46,10 @@ def test_analyze_rejects_missing_market_input() -> None:
     assert response.json()["code"] == "invalid_input"
 
 
-def test_analyze_returns_typed_error_when_live_workflow_unavailable() -> None:
+def test_analyze_returns_typed_error_when_live_workflow_unavailable(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setenv("WORKFLOW_TAVILY_API_KEY", "")
+    monkeypatch.setenv("WORKFLOW_GEMINI_API_KEY", "")
+    get_settings.cache_clear()
     client = TestClient(create_app())
 
     response = client.post("/analyze", json={"marketInput": "KXEXAMPLE-26MAY03-DEMO", "demoMode": False})
@@ -53,3 +58,4 @@ def test_analyze_returns_typed_error_when_live_workflow_unavailable() -> None:
     payload = response.json()
     assert payload["code"] == "workflow_unavailable"
     assert payload["request_id"]
+    get_settings.cache_clear()
