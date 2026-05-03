@@ -11,7 +11,7 @@ export function SiteHeader() {
         <button
           type="button"
           onClick={goHome}
-          className="text-foreground hover:text-foreground/70 focus-visible:ring-ring rounded-sm text-sm font-semibold tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="text-foreground hover:text-foreground/70 focus-visible:ring-ring cursor-pointer rounded-sm text-lg font-semibold tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:text-xl"
         >
           Kalshi AI Research
         </button>
