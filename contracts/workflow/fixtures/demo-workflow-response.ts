@@ -119,5 +119,5 @@ export const demoWorkflowResponse: WorkflowResponse = {
     rawJsonLabel: "Validated workflow response JSON",
   },
   disclaimer:
-    "This is research-only analysis, not financial advice or a recommendation to buy, sell, or place any trade.",
+    "This is research-only analysis, not financial advice or trading advice, and not a recommendation or order instruction.",
 };

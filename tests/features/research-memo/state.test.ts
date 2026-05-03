@@ -9,13 +9,11 @@ describe("research-memo state machine", () => {
   });
 
   it("transitions idle -> submitting on a non-empty input", () => {
-    const next = reducer({ kind: "idle" }, { type: "SUBMIT", marketInput: "  KX-DEMO  " });
+    const next = reducer(
+      { kind: "idle" },
+      { type: "SUBMIT", input: { marketInput: "KX-DEMO", source: "ticker" } },
+    );
     expect(next).toEqual({ kind: "submitting", marketInput: "KX-DEMO" });
-  });
-
-  it("rejects empty market input as an invalid_input error", () => {
-    const next = reducer({ kind: "idle" }, { type: "SUBMIT", marketInput: "   " });
-    expect(next).toEqual({ kind: "error", reason: "invalid_input" });
   });
 
   it("transitions submitting -> success only when a response arrives", () => {

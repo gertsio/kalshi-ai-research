@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Literal
@@ -6,6 +7,12 @@ from pydantic import AnyUrl, BaseModel, ConfigDict, Field, StringConstraints, fi
 
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 Probability = Annotated[float, Field(ge=0, le=1)]
+FORBIDDEN_RECOMMENDATION_PATTERN = re.compile(
+    r"\b(?:you should|we recommend)\s+(?:buy|sell|place|enter|exit)\b"
+    r"|\b(?:recommendation|action|trade):\s*(?:buy|sell|place|enter|exit)\b"
+    r"|\b(?:buy|sell)\s+(?:now|this market|the contract)\b",
+    re.IGNORECASE,
+)
 
 
 class BoundedLevel(StrEnum):
@@ -144,6 +151,15 @@ class WorkflowResponse(BaseModel):
         if missing_roles:
             missing = ", ".join(sorted(role.value for role in missing_roles))
             raise ValueError(f"Agent trace must include {missing}.")
+
+        authored_outputs = [
+            self.agent_estimate.thesis,
+            self.final_memo_markdown,
+            *self.counterarguments,
+            *self.what_would_change,
+        ]
+        if any(FORBIDDEN_RECOMMENDATION_PATTERN.search(output) for output in authored_outputs):
+            raise ValueError("Workflow output must not include direct recommendation phrasing.")
 
         return self
 

@@ -112,16 +112,22 @@ curl -X POST http://127.0.0.1:8000/analyze \
 Root `.env.example`:
 
 ```bash
-GEMINI_API_KEY=""
-TAVILY_API_KEY=""
+NEXT_PUBLIC_WORKFLOW_ENDPOINT="http://127.0.0.1:8000/analyze"
 ```
+
+The frontend only needs `NEXT_PUBLIC_WORKFLOW_ENDPOINT`. Do not put Gemini, Tavily, Kalshi private, or other secret-bearing API keys in root browser-facing environment variables.
 
 Workflow service settings use the `WORKFLOW_` prefix from `workflow-python/app/core/config.py`:
 
 | Variable                      | Purpose                                           |
 | ----------------------------- | ------------------------------------------------- |
 | `WORKFLOW_TAVILY_API_KEY`     | Enables live Tavily-backed evidence search.       |
+| `WORKFLOW_GEMINI_API_KEY`     | Enables live Gemini-backed probability analysis.  |
+| `WORKFLOW_GEMINI_MODEL`       | Overrides the Gemini model, default `gemini-2.5-flash`. |
+| `WORKFLOW_GEMINI_BASE_URL`    | Overrides the Gemini API base URL, including OpenRouter-compatible endpoints. |
 | `WORKFLOW_CORS_ALLOW_ORIGINS` | Overrides local frontend origins allowed by CORS. |
+
+For OpenRouter, use `WORKFLOW_GEMINI_BASE_URL="https://openrouter.ai/api/v1"` and an OpenRouter model id such as `WORKFLOW_GEMINI_MODEL="google/gemini-2.5-flash"`. OpenRouter keys do not work against Google's `generativelanguage.googleapis.com` endpoint.
 
 Local CORS allows `http://localhost:3000` and `http://127.0.0.1:3000` by default.
 
@@ -197,4 +203,4 @@ The TypeScript contract lives in `contracts/workflow/workflow-contract.ts`. The 
 
 ## Current Status
 
-This repository is an MVP prototype. The frontend currently renders idle, loading, error, and validated-success placeholder states. The Python workflow API exposes `GET /health` and `POST /analyze`, with deterministic demo mode available immediately and live-market seams for Kalshi public data and Tavily evidence search.
+This repository is an MVP prototype. The frontend renders idle, loading, explicit error, and validated research-memo success states. The Python workflow API exposes `GET /health` and `POST /analyze`, with deterministic demo mode available immediately and live-market seams for Kalshi public data and Tavily evidence search.

@@ -12,6 +12,9 @@ export const agentRoleSchema = z.enum([
   "memo_editor",
 ]);
 
+const forbiddenRecommendationPattern =
+  /\b(?:you should|we recommend)\s+(?:buy|sell|place|enter|exit)\b|\b(?:recommendation|action|trade):\s*(?:buy|sell|place|enter|exit)\b|\b(?:buy|sell)\s+(?:now|this market|the contract)\b/i;
+
 export const workflowRequestSchema = z.object({
   marketInput: z.string().trim().min(1),
   requestedAt: z.string().datetime().optional(),
@@ -120,12 +123,38 @@ export const workflowResponseSchema = z
       }
     }
 
-    if (!/research|advice|trade/i.test(response.disclaimer)) {
+    const disclaimer = response.disclaimer.toLowerCase();
+    const hasResearchBoundary = disclaimer.includes("research") || disclaimer.includes("informational");
+    const rejectsAdvice = ["not financial advice", "not trading advice", "not advice"].some((phrase) =>
+      disclaimer.includes(phrase),
+    );
+    const rejectsTrade = ["not a recommendation", "not trade", "place any trade"].some((phrase) =>
+      disclaimer.includes(phrase),
+    );
+
+    if (!(hasResearchBoundary && rejectsAdvice && rejectsTrade)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["disclaimer"],
         message: "Disclaimer must clearly separate research from trading advice.",
       });
+    }
+
+    const authoredOutputs: Array<{ path: Array<string | number>; text: string }> = [
+      { path: ["agentEstimate", "thesis"], text: response.agentEstimate.thesis },
+      { path: ["finalMemoMarkdown"], text: response.finalMemoMarkdown },
+      ...response.counterarguments.map((text, index) => ({ path: ["counterarguments", index], text })),
+      ...response.whatWouldChange.map((text, index) => ({ path: ["whatWouldChange", index], text })),
+    ];
+
+    for (const output of authoredOutputs) {
+      if (forbiddenRecommendationPattern.test(output.text)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: output.path,
+          message: "Workflow output must not include direct buy/sell/place-trade recommendation phrasing.",
+        });
+      }
     }
   });
 

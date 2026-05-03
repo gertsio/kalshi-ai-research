@@ -7,6 +7,8 @@ from app.contracts.workflow import (
     AgentRole,
     AgentTraceEntry,
     Evidence,
+    SettlementRisk,
+    Warning,
     WorkflowRequest,
     WorkflowResponse,
 )
@@ -14,6 +16,7 @@ from app.core.config import get_settings
 from app.core.errors import ErrorCode, WorkflowError
 from app.fixtures.demo_response import build_demo_response
 from app.tools.evidence_research import EvidenceResearchTool, EvidenceSearchResult, TavilySearchProvider
+from app.tools.gemini_probability import GeminiProbabilityTool
 from app.tools.kalshi_market_data import KalshiPublicMarketDataTool, PublicMarketData
 from app.tools.probability_scoring import ProbabilityScoringResult, score_probability
 from app.tools.settlement_risk import audit_settlement_risk
@@ -25,6 +28,19 @@ class MarketDataTool(Protocol):
 
 class ResearchTool(Protocol):
     async def gather(self, query: str, *, max_results: int = 5) -> EvidenceSearchResult: ...
+
+
+class ProbabilityTool(Protocol):
+    async def score(
+        self,
+        *,
+        market_title: str,
+        market_ticker: str,
+        kalshi_implied_probability: float,
+        evidence: list[Evidence],
+        settlement_risks: list[SettlementRisk],
+        warnings: list[Warning],
+    ) -> ProbabilityScoringResult: ...
 
 
 AGENT_SEQUENCE: tuple[tuple[AgentRole, str], ...] = (
@@ -43,10 +59,12 @@ class WorkflowService:
         *,
         market_data_tool: MarketDataTool | None = None,
         research_tool: ResearchTool | None = None,
+        probability_tool: ProbabilityTool | None = None,
         secrets: list[str] | None = None,
     ) -> None:
         self._market_data_tool = market_data_tool
         self._research_tool = research_tool
+        self._probability_tool = probability_tool
         self._secrets = [secret for secret in secrets or [] if secret]
 
     async def analyze(self, request: WorkflowRequest) -> WorkflowResponse:
@@ -69,12 +87,22 @@ class WorkflowService:
             research = await self._research_tool.gather(_research_query(market_data), max_results=5)
             trace.append(_trace(AgentRole.RESEARCH, "Gathered public evidence for the exact market criteria."))
 
-            scoring = score_probability(
-                kalshi_implied_probability=market_data.implied_probability,
-                evidence=research.evidence,
-                settlement_risks=settlement_risks,
-                warnings=market_data.warnings,
-            )
+            if self._probability_tool is None:
+                scoring = score_probability(
+                    kalshi_implied_probability=market_data.implied_probability,
+                    evidence=research.evidence,
+                    settlement_risks=settlement_risks,
+                    warnings=market_data.warnings,
+                )
+            else:
+                scoring = await self._probability_tool.score(
+                    market_title=market_data.market.title,
+                    market_ticker=market_data.market.ticker,
+                    kalshi_implied_probability=market_data.implied_probability,
+                    evidence=research.evidence,
+                    settlement_risks=settlement_risks,
+                    warnings=market_data.warnings,
+                )
             trace.append(_trace(AgentRole.PROBABILITY_ESTIMATOR, "Produced a bounded probability estimate."))
             trace.append(_trace(AgentRole.SKEPTIC, "Added counterarguments and change conditions."))
             trace.append(_trace(AgentRole.MEMO_EDITOR, "Validated strict JSON response contract."))
@@ -93,13 +121,22 @@ class WorkflowService:
 def get_workflow_service() -> WorkflowService:
     settings = get_settings()
     research_tool = None
+    probability_tool = None
     secrets = []
     if settings.tavily_api_key:
         research_tool = EvidenceResearchTool(TavilySearchProvider(settings.tavily_api_key))
         secrets.append(settings.tavily_api_key)
+    if settings.gemini_api_key:
+        probability_tool = GeminiProbabilityTool(
+            settings.gemini_api_key,
+            model=settings.gemini_model,
+            base_url=settings.gemini_base_url,
+        )
+        secrets.append(settings.gemini_api_key)
     return WorkflowService(
         market_data_tool=KalshiPublicMarketDataTool(),
         research_tool=research_tool,
+        probability_tool=probability_tool,
         secrets=secrets,
     )
 
@@ -147,8 +184,8 @@ def _response_payload(
         "finalMemoMarkdown": _memo_markdown(market_data, scoring),
         "developer": {"rawJsonInspectionEnabled": True, "rawJsonLabel": "Validated workflow response JSON"},
         "disclaimer": (
-            "This is research-only analysis, not financial advice or a recommendation to buy, sell, or place any "
-            "trade."
+            "This is research-only analysis, not financial advice or trading advice, and not a recommendation or order "
+            "instruction."
         ),
     }
 
