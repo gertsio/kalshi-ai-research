@@ -92,9 +92,7 @@ class EvidenceResearchTool:
         return EvidenceSearchResult(
             evidence=normalize_search_results(raw_results),
             requirements=[
-                EvidenceRequirement(
-                    confidence=BoundedLevel.MEDIUM, min_sources=2, min_relevance=BoundedLevel.MEDIUM
-                ),
+                EvidenceRequirement(confidence=BoundedLevel.MEDIUM, min_sources=2, min_relevance=BoundedLevel.MEDIUM),
                 EvidenceRequirement(confidence=BoundedLevel.HIGH, min_sources=3, min_relevance=BoundedLevel.HIGH),
             ],
         )

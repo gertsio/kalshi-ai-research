@@ -98,6 +98,5 @@ async def test_tavily_provider_posts_live_search_request_shape() -> None:
     assert requests[0].url == "https://tavily.test/search"
     assert requests[0].headers["authorization"] == "Bearer test-key"
     assert requests[0].read() == (
-        b'{"query":"jobs report","search_depth":"basic","topic":"news",'
-        b'"include_answer":false,"max_results":3}'
+        b'{"query":"jobs report","search_depth":"basic","topic":"news","include_answer":false,"max_results":3}'
     )
