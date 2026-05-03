@@ -14,14 +14,14 @@ export function IdleView({ onSubmit }: Props) {
 
   return (
     <section aria-labelledby="masthead-heading" className="mx-auto flex max-w-2xl flex-col gap-10">
-      <div className="flex flex-col gap-3 text-center">
+      <div className="flex flex-col items-center gap-4 text-center">
         <h1
           id="masthead-heading"
-          className="text-foreground text-3xl font-semibold tracking-tight sm:text-4xl"
+          className="text-foreground text-3xl font-semibold tracking-tight sm:text-5xl"
         >
-          Research a Kalshi market in seconds.
+          Research a Kalshi market in <span className="text-primary">seconds</span>.
         </h1>
-        <p className="text-muted-foreground text-base leading-relaxed">
+        <p className="text-muted-foreground max-w-xl text-base leading-relaxed">
           Paste a market URL or ticker. Six agents read the rules, gather evidence, and return a research
           memo.
         </p>
