@@ -104,7 +104,7 @@ class KalshiPublicMarketDataTool:
                 url=f"https://kalshi.com/markets/{normalized_ticker}",
                 status=_status(market.get("status")),
                 closeTime=close_time,
-                settlementSource=market.get("rules_primary"),
+                settlementSource=market.get("rules_primary") or None,
             ),
             implied_probability=implied_probability,
             prices=prices,

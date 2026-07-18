@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from app.contracts.workflow import (
@@ -10,8 +12,17 @@ from app.contracts.workflow import (
     WorkflowResponse,
 )
 from app.core.errors import ErrorCode, WorkflowError
-from app.orchestrator.ag2_skeptic import SkepticCalibration, _json_object
-from app.orchestrator.service import WorkflowService
+from app.engine.events import (
+    AnalysisCompleted,
+    AnalysisFailed,
+    EstimateUpdated,
+    EvidenceAdded,
+    MarketResolved,
+    StageCompleted,
+    StageStarted,
+)
+from app.engine.pipeline import AnalysisEngine
+from app.engine.skeptic import SkepticCalibration, _json_object
 from app.tools.evidence_research import EvidenceSearchResult
 from app.tools.kalshi_market_data import (
     MarketMetadata,
@@ -60,15 +71,15 @@ def test_ag2_skeptic_body_parser_extracts_fenced_json() -> None:
     assert calibration.counterarguments == []
 
 
-class FakeMarketDataTool:
-    async def fetch(self, ticker: str, *, now: object | None = None) -> PublicMarketData:
+class FakeEventSource:
+    async def resolve(self, event_input: str, *, now: datetime | None = None) -> PublicMarketData:
         del now
         return PublicMarketData(
             market=MarketMetadata(
-                ticker=ticker.upper(),
+                ticker=event_input.upper(),
                 title=f"Will the demo event happen? {SECRET}",
                 subtitle="Demo event",
-                url=f"https://kalshi.com/markets/{ticker.upper()}",
+                url=f"https://kalshi.com/markets/{event_input.upper()}",
                 status="open",
                 settlementSource="Official source named in market rules.",
             ),
@@ -156,13 +167,21 @@ class FailingSkepticCalibrator:
         raise ValueError("invalid AG2 structured output")
 
 
-@pytest.mark.asyncio
-async def test_live_workflow_runs_fixed_six_agent_sequence_and_validates_json() -> None:
-    service = WorkflowService(
-        market_data_tool=FakeMarketDataTool(), research_tool=FakeResearchTool(), secrets=[SECRET]
-    )
+def _live_engine(**overrides: object) -> AnalysisEngine:
+    kwargs: dict[str, object] = {
+        "event_source": FakeEventSource(),
+        "research_tool": FakeResearchTool(),
+        "secrets": [SECRET],
+    }
+    kwargs.update(overrides)
+    return AnalysisEngine(**kwargs)  # type: ignore[arg-type]
 
-    response = await service.analyze(WorkflowRequest(market_input="kxexample-26may03-demo", demo_mode=False))
+
+@pytest.mark.asyncio
+async def test_live_analysis_runs_fixed_six_agent_sequence_and_validates_json() -> None:
+    engine = _live_engine()
+
+    response = await engine.analyze(WorkflowRequest(market_input="kxexample-26may03-demo", demo_mode=False))
     payload = response.model_dump(by_alias=True, mode="json")
 
     assert WorkflowResponse.model_validate(payload) == response
@@ -186,15 +205,10 @@ async def test_live_workflow_runs_fixed_six_agent_sequence_and_validates_json() 
 
 
 @pytest.mark.asyncio
-async def test_live_workflow_can_run_mocked_ag2_skeptic_calibration() -> None:
-    service = WorkflowService(
-        market_data_tool=FakeMarketDataTool(),
-        research_tool=FakeResearchTool(),
-        skeptic_calibrator=FakeSkepticCalibrator(),
-        secrets=[SECRET],
-    )
+async def test_live_analysis_can_run_mocked_ag2_skeptic_calibration() -> None:
+    engine = _live_engine(skeptic_calibrator=FakeSkepticCalibrator())
 
-    response = await service.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
+    response = await engine.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
 
     assert response.agent_trace[4].role == "skeptic"
     assert response.agent_trace[4].status == "completed"
@@ -205,12 +219,10 @@ async def test_live_workflow_can_run_mocked_ag2_skeptic_calibration() -> None:
 
 
 @pytest.mark.asyncio
-async def test_live_workflow_redacts_secrets_from_validated_output() -> None:
-    service = WorkflowService(
-        market_data_tool=FakeMarketDataTool(), research_tool=FakeResearchTool(), secrets=[SECRET]
-    )
+async def test_live_analysis_redacts_secrets_from_validated_output() -> None:
+    engine = _live_engine()
 
-    response = await service.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
+    response = await engine.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
 
     assert SECRET not in response.model_dump_json(by_alias=True)
     assert "[redacted]" in response.market.title
@@ -218,13 +230,11 @@ async def test_live_workflow_redacts_secrets_from_validated_output() -> None:
 
 
 @pytest.mark.asyncio
-async def test_recoverable_orchestration_failure_is_typed_error() -> None:
-    service = WorkflowService(
-        market_data_tool=FakeMarketDataTool(), research_tool=FailingResearchTool(), secrets=[SECRET]
-    )
+async def test_recoverable_analysis_failure_is_typed_error() -> None:
+    engine = _live_engine(research_tool=FailingResearchTool())
 
     with pytest.raises(WorkflowError) as error:
-        await service.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
+        await engine.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
 
     assert error.value.code == ErrorCode.MALFORMED_WORKFLOW_OUTPUT
     assert error.value.status_code == 502
@@ -232,15 +242,98 @@ async def test_recoverable_orchestration_failure_is_typed_error() -> None:
 
 @pytest.mark.asyncio
 async def test_ag2_skeptic_failure_is_typed_model_error() -> None:
-    service = WorkflowService(
-        market_data_tool=FakeMarketDataTool(),
-        research_tool=FakeResearchTool(),
-        skeptic_calibrator=FailingSkepticCalibrator(),
-        secrets=[SECRET],
-    )
+    engine = _live_engine(skeptic_calibrator=FailingSkepticCalibrator())
 
     with pytest.raises(WorkflowError) as error:
-        await service.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
+        await engine.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
 
     assert error.value.code == ErrorCode.MALFORMED_WORKFLOW_OUTPUT
     assert error.value.status_code == 502
+
+
+@pytest.mark.asyncio
+async def test_live_stream_interleaves_progress_events_and_ends_with_final() -> None:
+    engine = _live_engine(skeptic_calibrator=FakeSkepticCalibrator())
+
+    events = [
+        event
+        async for event in engine.stream(
+            WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False), pace_seconds=0.0
+        )
+    ]
+
+    assert isinstance(events[0], StageStarted)
+    assert events[0].stage == "market_data"
+    assert any(isinstance(event, MarketResolved) for event in events)
+    assert any(isinstance(event, EvidenceAdded) for event in events)
+
+    estimates = [event for event in events if isinstance(event, EstimateUpdated)]
+    assert [estimate.basis for estimate in estimates] == ["market_prior", "research_draft", "skeptic_calibrated"]
+    assert estimates[0].probability == 0.42
+
+    final = events[-1]
+    assert isinstance(final, AnalysisCompleted)
+    blocking = await engine.analyze(WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False))
+    assert _without_timestamps(final.response) == _without_timestamps(blocking)
+
+
+def _without_timestamps(response: WorkflowResponse) -> dict[str, object]:
+    payload = response.model_dump(by_alias=True, mode="json")
+    del payload["analyzedAt"]
+    del payload["kalshi"]["lastUpdatedAt"]
+    return payload
+
+
+@pytest.mark.asyncio
+async def test_live_stream_redacts_secrets_from_progress_events() -> None:
+    engine = _live_engine()
+
+    events = [
+        event
+        async for event in engine.stream(
+            WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False), pace_seconds=0.0
+        )
+    ]
+
+    serialized = "".join(event.model_dump_json(by_alias=True) for event in events)
+    assert SECRET not in serialized
+    assert "[redacted]" in serialized
+
+
+@pytest.mark.asyncio
+async def test_live_stream_failure_yields_error_event_instead_of_raising() -> None:
+    engine = _live_engine(research_tool=FailingResearchTool())
+
+    events = [
+        event
+        async for event in engine.stream(
+            WorkflowRequest(market_input="KXEXAMPLE-26MAY03-DEMO", demo_mode=False), pace_seconds=0.0
+        )
+    ]
+
+    final = events[-1]
+    assert isinstance(final, AnalysisFailed)
+    assert final.code == ErrorCode.MALFORMED_WORKFLOW_OUTPUT
+    assert final.status_code == 502
+
+
+@pytest.mark.asyncio
+async def test_demo_stream_replays_the_demo_response_with_same_event_shapes() -> None:
+    engine = AnalysisEngine()
+
+    events = [event async for event in engine.stream(WorkflowRequest(market_input="anything"), pace_seconds=0.0)]
+
+    assert isinstance(events[0], StageStarted)
+    stage_completions = [event for event in events if isinstance(event, StageCompleted)]
+    assert {completion.stage for completion in stage_completions} == {
+        "market_data",
+        "settlement_rules",
+        "research",
+        "probability_estimator",
+        "skeptic",
+        "memo_editor",
+    }
+
+    final = events[-1]
+    assert isinstance(final, AnalysisCompleted)
+    assert final.response == await engine.analyze(WorkflowRequest(market_input="anything"))
