@@ -1,0 +1,43 @@
+{
+  "updated_at": "2026-07-18",
+  "spec": "001",
+  "active_ticket": "001",
+  "next_ticket": "002",
+  "tickets": [
+    {
+      "id": "001",
+      "title": "Skills-hub migration and repo normalization",
+      "file": "tickets/001-skills-hub-and-repo-normalization.md",
+      "status": "active",
+      "blocked_by": []
+    },
+    {
+      "id": "002",
+      "title": "Streaming event-probability engine",
+      "file": "tickets/002-streaming-probability-engine.md",
+      "status": "ready",
+      "blocked_by": []
+    },
+    {
+      "id": "003",
+      "title": "Animation-first React SPA",
+      "file": "tickets/003-animation-first-spa.md",
+      "status": "ready",
+      "blocked_by": ["002"]
+    },
+    {
+      "id": "004",
+      "title": "Backend deploy on Hetzner VPS",
+      "file": "tickets/004-hetzner-backend-deploy.md",
+      "status": "ready",
+      "blocked_by": ["002"]
+    },
+    {
+      "id": "005",
+      "title": "Frontend deploy on Cloudflare",
+      "file": "tickets/005-cloudflare-frontend-deploy.md",
+      "status": "ready",
+      "blocked_by": ["003", "004"]
+    }
+  ]
+}

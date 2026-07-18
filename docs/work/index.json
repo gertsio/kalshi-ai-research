@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "repo": "kalshi-ai-research",
+  "updated_at": "2026-07-18",
+  "active_workstream": "predictor",
+  "workstreams": [
+    {
+      "id": "predictor",
+      "title": "Predictor",
+      "folder": "predictor",
+      "manifest": "predictor/specs.json",
+      "status": "active"
+    }
+  ]
+}

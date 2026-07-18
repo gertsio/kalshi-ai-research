@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "project": "<workstream-slug>",
+  "project_title": "<Workstream Title>",
+  "description": "Local spec packages and implementation ticket queues for <repo purpose>.",
+  "path_note": "Local planning workspace for specs and derived tickets. Compatibility filenames and keys retain prd/issue.",
+  "active_prd": null,
+  "next_prd": "<prefix>-prd-001",
+  "updated_at": "<yyyy-mm-dd>",
+  "status_values": [
+    "draft",
+    "ready",
+    "active",
+    "blocked",
+    "completed",
+    "cancelled",
+    "archived"
+  ],
+  "prds": [
+    {
+      "id": "<prefix>-prd-001",
+      "number": 1,
+      "slug": "<spec-slug>",
+      "title": "<Spec Title>",
+      "folder": "001-<spec-slug>",
+      "prd_file": "001-<spec-slug>/prd.md",
+      "issues_manifest": "001-<spec-slug>/issues.json",
+      "status": "draft",
+      "created_at": "<yyyy-mm-dd>",
+      "updated_at": "<yyyy-mm-dd>",
+      "completed_at": null,
+      "tags": []
+    }
+  ]
+}

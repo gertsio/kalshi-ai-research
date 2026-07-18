@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "project": "kalshi-ai-research",
+  "status_values": [
+    "draft",
+    "ready",
+    "ready-for-human",
+    "active",
+    "blocked",
+    "completed",
+    "cancelled",
+    "archived"
+  ],
+  "active_spec": "001",
+  "next_spec": null,
+  "specs": [
+    {
+      "id": "001",
+      "title": "Probability engine refactor and first deploy",
+      "file": "001-probability-engine-refactor/spec.md",
+      "status": "active"
+    }
+  ]
+}
