@@ -20,6 +20,10 @@ class Settings(BaseSettings):
         ],
         validation_alias=AliasChoices("WORKFLOW_CORS_ALLOW_ORIGINS", "CORS_ALLOW_ORIGINS"),
     )
+    cors_allow_origin_regex: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("WORKFLOW_CORS_ALLOW_ORIGIN_REGEX", "CORS_ALLOW_ORIGIN_REGEX"),
+    )
     tavily_api_key: str | None = Field(
         default=None, validation_alias=AliasChoices("WORKFLOW_TAVILY_API_KEY", "TAVILY_API_KEY")
     )
