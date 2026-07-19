@@ -14,15 +14,14 @@ Serve the built SPA from Cloudflare, pointed at the VPS backend.
 
 ## Outcome
 
-Prepared 2026-07-18: `.env.production` pins `VITE_API_BASE_URL` to the sslip
-backend host and `npm run deploy` builds and pushes `dist/` to Cloudflare
-Pages project `probable`. The VPS engine already allowlists
-`https://probable.pages.dev` for CORS.
+Completed 2026-07-18: Cloudflare Pages project `probable-9mr` created and
+`npm run deploy` ships `dist/` to it. Cloudflare appended a random suffix to
+the subdomain, so the live origin is `https://probable-9mr-azu.pages.dev`
+(not `probable-9mr.pages.dev`); the VPS CORS allowlist and preview-origin
+regex were updated to match. Verified end to end: the site serves the built
+SPA whose bundle points at `https://probable-api.5-161-180-27.sslip.io`, and
+a CORS preflight from the deployed origin passes against the backend, which
+streams both demo and live analyses.
 
-## Remaining (human gate)
-
-- Authenticate once: `npx wrangler login`, then run `npm run deploy`.
-- If the Pages project name `probable` is taken, pick another and update the
-  CORS origin in the VPS `.env` to match.
-- After the backend moves to `probable-api.gerts.io`, update
-  `.env.production` and redeploy.
+Remaining follow-up: once the `probable-api.gerts.io` record lands, update
+`.env.production` and redeploy.
