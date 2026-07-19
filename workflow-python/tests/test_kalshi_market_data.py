@@ -81,6 +81,20 @@ async def test_fetches_public_market_data_with_orderbook_summary() -> None:
 
 
 @pytest.mark.asyncio
+async def test_empty_settlement_source_maps_to_none() -> None:
+    tool, _requests = _tool(
+        {
+            "/markets/KXEXAMPLE-26MAY03-DEMO": _market(rules_primary=""),
+            "/markets/KXEXAMPLE-26MAY03-DEMO/orderbook": _orderbook(),
+        }
+    )
+
+    result = await tool.fetch("KXEXAMPLE-26MAY03-DEMO", now=datetime(2026, 5, 3, tzinfo=UTC))
+
+    assert result.market.settlement_source is None
+
+
+@pytest.mark.asyncio
 async def test_missing_orderbook_data_does_not_crash_and_warns() -> None:
     tool, _requests = _tool(
         {
@@ -109,17 +123,13 @@ async def test_event_ticker_resolves_to_most_liquid_child_market() -> None:
                     "markets": [
                         _market(
                             ticker="KXNEXTAG-29-LZEL", subtitle=None, yes_sub_title="Lee Zeldin", volume_24h_fp="10.00"
-                        )[
-                            "market"
-                        ],
+                        )["market"],
                         _market(
                             ticker="KXNEXTAG-29-TBLA",
                             subtitle=None,
                             yes_sub_title="Todd Blanche",
                             volume_24h_fp="100.00",
-                        )[
-                            "market"
-                        ],
+                        )["market"],
                     ],
                 },
             )

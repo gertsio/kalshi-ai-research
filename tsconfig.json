@@ -4,7 +4,6 @@
     "lib": ["dom", "dom.iterable", "ES2022"],
     "module": "esnext",
     "moduleResolution": "bundler",
-    "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -14,13 +13,12 @@
     "exactOptionalPropertyTypes": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [{ "name": "next" }],
+    "jsx": "react-jsx",
+    "types": ["vite/client", "@testing-library/jest-dom"],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".next", "workflow-python"]
+  "include": ["src", "vite.config.ts", "eslint.config.mjs"],
+  "exclude": ["node_modules", "dist", "workflow-python"]
 }

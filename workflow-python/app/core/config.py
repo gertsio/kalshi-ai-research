@@ -12,8 +12,17 @@ class Settings(BaseSettings):
         default="Kalshi Research Workflow API", validation_alias=AliasChoices("WORKFLOW_APP_NAME", "APP_NAME")
     )
     cors_allow_origins: list[str] = Field(
-        default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"],
+        default_factory=lambda: [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ],
         validation_alias=AliasChoices("WORKFLOW_CORS_ALLOW_ORIGINS", "CORS_ALLOW_ORIGINS"),
+    )
+    cors_allow_origin_regex: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("WORKFLOW_CORS_ALLOW_ORIGIN_REGEX", "CORS_ALLOW_ORIGIN_REGEX"),
     )
     tavily_api_key: str | None = Field(
         default=None, validation_alias=AliasChoices("WORKFLOW_TAVILY_API_KEY", "TAVILY_API_KEY")

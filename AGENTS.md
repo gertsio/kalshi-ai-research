@@ -43,6 +43,7 @@ inside) before finishing. Do not fix logged issues inline unless trivial;
 the `groom-friction` skill converts the log into fixes and tickets.
 
 <!-- agent-skills-hub:start -->
+
 ## Agent skills
 
 ### Issue tracker
@@ -57,4 +58,5 @@ Use the default five-label triage vocabulary: `needs-triage`, `needs-info`, `rea
 ### Domain docs
 
 This is a single-context repo using root `CONTEXT.md` and root `docs/adr/` for architectural decisions. See `docs/agents/domain.md`.
+
 <!-- agent-skills-hub:end -->
