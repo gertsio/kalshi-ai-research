@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "repo": "<repo-slug>",
+  "updated_at": "<yyyy-mm-dd>",
+  "active_workstream": "<workstream-slug>",
+  "workstreams": [
+    {
+      "id": "<workstream-slug>",
+      "title": "<Workstream Title>",
+      "folder": "<workstream-slug>",
+      "manifest": "<workstream-slug>/prds.json",
+      "status": "active"
+    }
+  ]
+}
