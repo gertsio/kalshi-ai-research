@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && npx -y wrangler pages deploy dist --project-name=probable-9mr",
+    "deploy": "npm run build && npx -y wrangler pages deploy dist --project-name=probable",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
