@@ -2,7 +2,7 @@
   "updated_at": "2026-07-18",
   "spec": "001",
   "active_ticket": null,
-  "next_ticket": "004",
+  "next_ticket": null,
   "tickets": [
     {
       "id": "001",
@@ -29,14 +29,14 @@
       "id": "004",
       "title": "Backend deploy on Hetzner VPS",
       "file": "tickets/004-hetzner-backend-deploy.md",
-      "status": "ready-for-human",
+      "status": "completed",
       "blocked_by": ["002"]
     },
     {
       "id": "005",
       "title": "Frontend deploy on Cloudflare",
       "file": "tickets/005-cloudflare-frontend-deploy.md",
-      "status": "ready-for-human",
+      "status": "completed",
       "blocked_by": ["003", "004"]
     }
   ]

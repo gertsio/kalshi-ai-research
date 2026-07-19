@@ -11,14 +11,14 @@
     "cancelled",
     "archived"
   ],
-  "active_spec": "001",
+  "active_spec": null,
   "next_spec": null,
   "specs": [
     {
       "id": "001",
       "title": "Probability engine refactor and first deploy",
       "file": "001-probability-engine-refactor/spec.md",
-      "status": "active"
+      "status": "completed"
     }
   ]
 }

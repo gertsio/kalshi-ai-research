@@ -36,3 +36,4 @@ One line per observation, newest last:
 
 - 2026-07-18 | live engine verification | The stored GEMINI_API_KEY (OpenRouter sk-or-…) returns 401 on chat completions, so live runs silently need the heuristic-scoring fallback; nothing documented the key's health | keep a working estimator key in .env or note the fallback in README
 - 2026-07-18 | VPS public exposure | Ports 80/443 are closed at the Hetzner Cloud firewall (not ufw), and neither hcloud nor Porkbun credentials are available to agents, so public HTTPS ends at ACME retries until the owner opens the firewall | document the cloud-firewall gate and credential boundaries in the hetzner-vps ops repo
+- 2026-07-18 | Cloudflare Pages deploy | New Pages projects get a random suffix on the pages.dev subdomain (`probable-9mr` -> `probable-9mr-azu.pages.dev`), so a CORS origin pinned before the first deploy is guaranteed stale | create the Pages project and read its real domain before wiring CORS
