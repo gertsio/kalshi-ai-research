@@ -1,8 +1,5 @@
 node_modules
-.next
-out
+dist
 package-lock.json
 workflow-python
 .agents
-contracts
-tests/contracts

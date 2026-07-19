@@ -1,0 +1,105 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+  --font-sans: "Fraunces", "Georgia", serif;
+
+  /* Night-desk palette: deep ink greens, luminous emerald, warm paper. */
+  --color-ink: #070c0a;
+  --color-desk: #0c1310;
+  --color-desk-raised: #111a16;
+  --color-desk-edge: #1d2a24;
+  --color-paper: #f3efe4;
+  --color-paper-shade: #e7e1d0;
+  --color-paper-ink: #221f18;
+
+  --color-glow: #4ade80;
+  --color-glow-soft: #86efac;
+  --color-glow-dim: #14532d;
+
+  --color-signal-rust: #e0653a;
+  --color-signal-amber: #e0a83a;
+
+  --color-background: var(--color-ink);
+  --color-foreground: #e5e3d7;
+  --color-card: var(--color-desk-raised);
+  --color-card-foreground: #e5e3d7;
+  --color-popover: var(--color-desk-raised);
+  --color-popover-foreground: #e5e3d7;
+  --color-primary: var(--color-glow);
+  --color-primary-foreground: #05130b;
+  --color-secondary: var(--color-desk-edge);
+  --color-secondary-foreground: #cfd8d0;
+  --color-muted: #16211c;
+  --color-muted-foreground: #86948b;
+  --color-accent: #16211c;
+  --color-accent-foreground: #d9e3da;
+  --color-destructive: var(--color-signal-rust);
+  --color-destructive-foreground: #1a0b06;
+  --color-border: #222f28;
+  --color-input: #222f28;
+  --color-ring: #34d39955;
+}
+
+html {
+  background-color: var(--color-ink);
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-ink);
+  color: var(--color-foreground);
+  min-height: 100dvh;
+}
+
+/* Fine grain so large dark surfaces don't read as flat pixels. */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.desk-glow {
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(74, 222, 128, 0.09), transparent 65%),
+    radial-gradient(ellipse 60% 45% at 85% 110%, rgba(74, 222, 128, 0.05), transparent 60%);
+}
+
+.hairline {
+  border-color: color-mix(in oklab, var(--color-glow) 18%, transparent);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes cursor-blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink {
+  animation: cursor-blink 1.1s steps(1) infinite;
+}
+
+@keyframes scanline {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}

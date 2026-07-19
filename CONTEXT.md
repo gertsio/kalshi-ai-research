@@ -1,23 +1,39 @@
-# Kalshi Research Swarm
+# Probable
 
-Kalshi Research Swarm is a research-only prediction-market analysis context for comparing Kalshi market probabilities with agent-generated estimates.
+Probable is an event-probability predictor and explainer: a user submits an event, a live research pass estimates how likely it is, and the interface animates the analysis while it runs.
 
 ## Language
 
+**Analysis Engine**:
+The Python pipeline that researches one event and emits Analysis Events while it works.
+_Avoid_: workflow service, orchestrator
+
+**Event Source**:
+The seam that resolves user input into researchable market data. Kalshi is the first implementation.
+_Avoid_: market tool, data provider (ambiguous with research tools)
+
+**Analysis Event**:
+One typed progress item streamed over SSE (stage transition, source found, evidence added, settlement risk, warning, estimate update, final, error).
+_Avoid_: message, update
+
 **Workflow Response Contract**:
-A UI render contract returned by the external agent workflow after analyzing one Kalshi market.
-_Avoid_: Research record, agent transcript, trading signal
+The validated final artifact for one analyzed event — market snapshot, estimate, delta, evidence, counterarguments, settlement risks, memo, disclaimer. Rendered only after schema validation on both sides.
+_Avoid_: research record, trading signal
+
+**Research Memo**:
+The user-facing finished sheet rendered from the Workflow Response Contract.
 
 ## Relationships
 
-- A **Workflow Response Contract** describes exactly one Kalshi market analysis.
-- A **Workflow Response Contract** is rendered by the frontend only after schema validation succeeds.
+- The **Analysis Engine** yields **Analysis Events**; the last successful event carries the **Workflow Response Contract**.
+- The blocking `/analyze` endpoint and the `/analyze/stream` SSE endpoint share one engine code path.
+- Demo mode replays the fixture response through the same **Analysis Event** shapes with pacing.
 
-## Example Dialogue
+## Boundaries
 
-> **Dev:** "Should this response be a reusable research artifact or the thing the UI renders?"
-> **Domain expert:** "For the MVP, make it the **Workflow Response Contract** so the demo fixture can drive the frontend before live agents are connected."
+- Research assistance only: no trades, no orders, no advice framing; the contract validates the disclaimer and forbids recommendation phrasing.
+- Provider secrets (Gemini, Tavily) exist only in the engine; the browser never holds them.
 
 ## Flagged Ambiguities
 
-- "Contract" was resolved to mean **Workflow Response Contract**, a UI render contract, not a legal Kalshi market contract.
+- "Contract" means the **Workflow Response Contract** (a UI render contract), not a Kalshi market contract.
