@@ -33,3 +33,6 @@ One line per observation, newest last:
 ## Entries
 
 <!-- append below this line -->
+
+- 2026-07-18 | live engine verification | The stored GEMINI_API_KEY (OpenRouter sk-or-…) returns 401 on chat completions, so live runs silently need the heuristic-scoring fallback; nothing documented the key's health | keep a working estimator key in .env or note the fallback in README
+- 2026-07-18 | VPS public exposure | Ports 80/443 are closed at the Hetzner Cloud firewall (not ufw), and neither hcloud nor Porkbun credentials are available to agents, so public HTTPS ends at ACME retries until the owner opens the firewall | document the cloud-firewall gate and credential boundaries in the hetzner-vps ops repo
