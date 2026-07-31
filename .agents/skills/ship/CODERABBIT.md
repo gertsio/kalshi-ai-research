@@ -1,7 +1,7 @@
 # CodeRabbit
 
 As one-time repository setup, prefer configuration that disables automatic and
-incremental reviews so `/ship` controls the review budget:
+incremental reviews so `/ship` controls the allocated budget:
 
 ```yaml
 reviews:
@@ -13,19 +13,22 @@ reviews:
       - ".*"
 ```
 
-After the PR is ready and the exact `PR ready for review` marker exists, post
-separately:
+After final Codex and Fable review is complete, the PR is ready, and the exact
+`PR ready for review` marker exists, post separately:
 
 `@coderabbitai review`
 
-One substantive final review or substantive no-findings response completes the
-pass. A rate-limit message, disabled-branch notice, placeholder success, green
-check without a review body, or silence does not.
+For each pass allocated by [REVIEW.md](REVIEW.md), request review
+against the latest accepted head, adjudicate every finding, apply valid fixes,
+and rerun affected checks plus the repository gate before pushing. Record a
+reviewer's refusal to repeat a clean same-head pass rather than manufacturing a
+change.
 
-Honor one explicit cooldown and retry the same request once. If no cooldown is
-given, use 30 minutes as the default bounded wait while polling the PR's reviews
-and comments. Then apply REVIEW-BUDGET.md's unavailable-reviewer branch rather
-than waiting indefinitely.
+New pushes do not automatically spend or satisfy another pass. Each requested
+pass may honor one explicit cooldown and retry once. If no cooldown is given,
+use 30 minutes as the default bounded wait while polling reviews and comments.
+After that, apply REVIEW.md's unavailable-reviewer rule rather than
+waiting indefinitely.
 
-New pushes do not trigger another review. A follow-up permitted by the main
-skill's hosted-review rule uses `@coderabbitai review` again.
+Record which commit each pass reviewed and judge completion with the budget's
+usable-pass definition.

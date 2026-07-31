@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Scaffold the maintainer's repo workflow for engineering skills:
 
-- `docs/work/` is the canonical spec and ticket tracker.
+- `docs/work/` is the canonical spec and ticket tracker, resolved by `docs/work/work.py`.
 - `docs/agents/` tells skills how to find tracker state, triage labels, and domain docs.
 - `CONTEXT-MAP.md` and `docs/contexts/<domain>/CONTEXT.md` are created when the repo needs mapped context.
 - `AGENTS.md` or `CLAUDE.md` gets a compact `## Agent skills` block.
@@ -27,8 +27,9 @@ This is prompt-driven, not a script. Explore first, show the planned edits, then
    - `docs/agents/domain.md`
    - `CONTEXT-MAP.md` plus `docs/contexts/<domain>/CONTEXT.md` when using mapped context
    - `docs/work/AGENTS.md`
-   - `docs/work/index.json` if missing.
-5. If the user wants a starter queue, create one workstream under `docs/work/<workstream>/` with `AGENTS.md`, `prds.json`, and a first spec package skeleton. The local schema still uses `prd` and `issue` filenames/keys for compatibility; treat those as spec and ticket records.
+   - `docs/work/work.py` and `docs/work/index.json` if missing.
+5. If the user wants a starter queue, create one workstream under `docs/work/<workstream>/` with `AGENTS.md`, `specs.json`, and a first spec package skeleton.
+6. Run `python3 docs/work/work.py check` and wire it into the repo's gate.
 
 ## Defaults
 

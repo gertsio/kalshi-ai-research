@@ -1,8 +1,15 @@
 # Workstream Agent Notes
 
-Use `prds.json` for spec package order and each package `issues.json` for ticket order. These compatibility filenames may say PRD/issue, but the current vocabulary is spec/ticket. Keep this file compact: current sequencing, run policy, and human-feedback gates only.
+The manifests are the only queue, sequence, and status interface; resolve them
+with `python3 docs/work/work.py`. This file owns only run policy and human
+gates. Do not copy frontiers, queues, or outcomes here.
 
-## Maintenance
+## Human Gates
 
-- After every ticket completion or reorder, check this file and update it if the sequence, run policy, or human-feedback gate changed.
-- Delete stale temporary notes instead of appending history.
+- <Who owns which decision or manual step, and what it unblocks.>
+
+## Run Policy
+
+- <How ticket work reaches the base branch: PR shape, review, staging rules.>
+
+History belongs in ticket outcomes and git, never in manifests or this file.

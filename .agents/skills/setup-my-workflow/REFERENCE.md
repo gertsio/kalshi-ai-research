@@ -8,9 +8,9 @@ Read existing repo state before suggesting edits:
 - `README.md`, `CONTEXT.md`, `CONTEXT-MAP.md`, `docs/contexts/`, and `docs/adr/`: determine domain-doc layout.
 - `docs/agents/`: preserve useful existing tracker, labels, and domain rules.
 - `docs/work/`: detect whether the local tracker already exists.
-- Existing spec/ticket queues: preserve IDs, statuses, and rank/order. If the repo uses the older `prd` and `issue` filenames or manifest keys, keep them stable and treat them as spec and ticket records.
+- Existing spec/ticket queues: preserve IDs, statuses, and order.
 
-If `docs/work/` already exists, read `docs/work/index.json`, then the active workstream manifest (`prds.json` in the compatibility schema), then the selected spec package manifest (`issues.json` in the compatibility schema) before changing workflow docs.
+If `docs/work/` already exists, resolve it with `python3 docs/work/work.py list` before changing workflow docs. A repo still on the v1 schema — `prds.json`/`issues.json`, stored `blocked` statuses, or `active_*`/`next_*` pointers — is migrated with `work.py migrate` (preview first, then `--write`); rename the files to `specs.json`/`tickets.json` and the `issues/` directory to `tickets/` in the same pass.
 
 ## 2. Decisions To Confirm
 
@@ -80,18 +80,18 @@ Keep context files short and honest. Seed only confirmed domain language, relati
 
 Create or update:
 
-- `docs/agents/issue-tracker.md` from `templates/issue-tracker-docs-work.md`.
+- `docs/agents/issue-tracker.md` from `templates/issue-tracker.md`.
 - `docs/agents/triage-labels.md` from `templates/triage-labels.md`.
 - `docs/agents/domain.md` from either `templates/domain-single.md` or `templates/domain-mapped.md`.
 
 The issue tracker doc must say:
 
-- `docs/work/` is canonical.
-- Read order is `docs/work/index.json` -> workstream manifest (`prds.json`) -> spec package manifest (`issues.json`).
-- Use `active_*` before `next_*` unless the user names a target.
-- Manifests own order, status, and IDs.
-- Ticket files own acceptance criteria and blocker notes.
-- Workstream `AGENTS.md` owns temporary sequencing, run policy, and human-feedback gates.
+- `docs/work/` is canonical and `docs/work/work.py` resolves it.
+- Read order is `docs/work/index.json` -> workstream `specs.json` -> spec package `tickets.json`.
+- Manifests store only intrinsic state: status and `blocked_by`.
+- Blockedness, the frontier, and next/active are derived on read, never stored.
+- Ticket files own acceptance criteria and outcome; the manifest owns dependency.
+- Workstream `AGENTS.md` owns run policy and human-feedback gates, never the queue.
 
 ## 6. docs/work Files
 
@@ -102,6 +102,7 @@ Minimum root:
 ```text
 docs/work/
   AGENTS.md
+  work.py
   index.json
 ```
 
@@ -110,53 +111,57 @@ Starter workstream:
 ```text
 docs/work/<workstream>/
   AGENTS.md
-  prds.json          # spec package manifest; compatibility filename
+  specs.json
   <NNN-spec-slug>/
-    prd.md           # spec document; compatibility filename
-    issues.json      # ticket manifest; compatibility filename
-    issues/          # ticket files; compatibility directory
+    spec.md
+    tickets.json
+    tickets/
       <NNN-slug>.md
 ```
 
-Use IDs shaped like `<workstream-prefix>-prd-001` and `<workstream-prefix>-prd-001-iss-001` in repos already on the compatibility schema. For new queues, prefer neutral slugs in titles and folder names, but do not rename existing IDs just for vocabulary. Keep local IDs canonical even if a remote issue later exists.
+Copy `templates/work.py` verbatim; it is the tracker's read and write
+interface and must not be edited per repo. Number IDs from `001` within their
+package. Keep local IDs canonical even if a remote issue later exists.
 
 ## 7. Manifest Rules
 
+Manifests store only intrinsic state — what nothing can compute. Anything
+derivable is computed by `work.py` on read, so it cannot drift.
+
 Root `docs/work/index.json` owns:
 
-- `schema_version`
-- `repo`
-- `updated_at`
-- `active_workstream`
-- `workstreams[]` with `id`, `title`, `folder`, `manifest`, and `status`
+- `schema_version`, `repo`, `active_workstream`
+- `workstreams[]` with `id`, `title`, `folder`, and `status`
 
-Workstream `prds.json` owns spec-package state:
+Workstream `specs.json` owns spec-package state:
 
-- `active_prd`, `next_prd`
-- valid statuses
-- `prds[]` with paths and status
+- `specs[]` with `id`, `title`, `folder`, and `status`
 
-Package `issues.json` owns ticket state:
+Package `tickets.json` owns ticket state:
 
-- `active_issue`, `next_issue`, `next_issue_number`
-- `queue_policy`
-- `issues[]` with status, type, rank, blockers, and labels
+- `tickets[]` with `id`, `title`, `file`, `status`, and `blocked_by`
+
+Statuses are `draft`, `ready`, `active`, `ready-for-human`, `completed`,
+`cancelled`, `archived`. There is no `blocked` status and no `active_*` /
+`next_*` / `rank` / `queue_policy` field: a blocked ticket is `ready` with an
+open blocker, and the frontier is a query. Timestamps belong to git.
 
 ## 8. Skill Semantics
 
 When another skill says "publish to the issue tracker": create/update local docs/work files and manifests.
 
-When another skill says "fetch the relevant ticket": read the local manifests to resolve the selected ticket, then read the referenced Markdown ticket file.
+When another skill says "fetch the relevant ticket": run `python3 docs/work/work.py next` (or `show <id>`) and read the ticket file it names.
 
-When work completes: update the ticket status and manifests first, then update the workstream `AGENTS.md` if queue sequencing or run policy changed. Delete stale notes instead of appending history.
+When work completes: `python3 docs/work/work.py set <id> completed`. That is the whole update — the next frontier recomputes itself. Touch the workstream `AGENTS.md` only if run policy or a human gate changed.
 
 ## 9. Verification
 
 After writing:
 
 - Read the edited files back.
-- Check JSON syntax for all touched manifest files.
+- Run `python3 docs/work/work.py check`; it validates JSON, ids, edges, cycles, missing files, orphan tickets, and any derived state that crept back in.
 - Confirm there is exactly one `## Agent skills` block in the chosen root agent file.
 - Confirm `docs/agents/issue-tracker.md` says `docs/work/` is canonical.
+- Confirm `work.py check` runs in the repo's gate.
 - For mapped-context setup, confirm `CONTEXT-MAP.md` points at real `docs/contexts/**/CONTEXT.md` files.
 - Summarize what was created and how to start the first spec/ticket.

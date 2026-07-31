@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-Specs, tickets, and triageable requests for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 
 ## Conventions
 
