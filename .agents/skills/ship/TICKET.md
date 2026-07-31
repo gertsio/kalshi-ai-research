@@ -21,13 +21,14 @@ repository gate is green.
 ## 2. Complete ticket review
 
 Commit the intended diff locally so every reviewer receives the same fixed base
-and head. Do not push it yet. Follow the ticket branch in
-[REVIEW.md](REVIEW.md): self-review, internal lenses, cross-model verdict.
+and head. Do not push it yet. Declare the ticket's review tier and follow the
+ticket branch in [REVIEW.md](REVIEW.md) at that tier; anything ambiguous
+classifies upward.
 
 After accepted changes, rerun affected checks and the full gate. Rerun only a
 lens whose evidence materially changed.
 
-Completion: the internal axes and the verdict produced usable passes under
+Completion: every step the declared tier allocates produced usable passes under
 [REVIEW.md](REVIEW.md), every finding is resolved or rationalized, and the
 latest ticket head passed the gate.
 

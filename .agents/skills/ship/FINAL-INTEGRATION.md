@@ -19,9 +19,10 @@ missing, staging is based on the current final base, and the gate is green.
 ## 2. Complete the final review
 
 Follow the final work-package branch in [REVIEW.md](REVIEW.md): internal sweep,
-then the allocated Codex advisory and `/simplify` wave, then the CodeRabbit
-passes on the ready PR with the idempotent `PR ready for review` marker posted
-exactly once. Adjudicate findings centrally, apply only changes that improve
+then the passes the final matrix allocates — the Codex advisory (forced when any
+ticket shipped below Tier 2) and, for code-bearing diffs, the `/simplify` wave — then
+the CodeRabbit passes on the ready PR with the idempotent `PR ready for review`
+marker posted exactly once. Adjudicate findings centrally, apply only changes that improve
 the accepted contract, and gate every changed head.
 
 Completion: every allocated pass is usable under [REVIEW.md](REVIEW.md), all

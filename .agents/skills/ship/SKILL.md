@@ -1,15 +1,16 @@
 ---
 name: ship
-description: Ship ticket work through staging with a cross-model verdict at every merge boundary.
+description: Ship ticket work through staging with review proportional to risk and a cross-model verdict where it counts.
 disable-model-invocation: true
 ---
 
 # Ship
 
-Ship through a work-package staging branch. Ticket PRs buy confidence with
-repository checks, internal review, and an independent cross-model verdict.
-Codex advisory, Fable `/simplify`, and CodeRabbit review the integrated work
-package, where their broader perspective has the highest value.
+Ship through a work-package staging branch. Ticket PRs buy confidence
+proportional to risk — from a self-review floor up to an independent
+cross-model verdict, declared as a tier before implementing. Codex advisory,
+Fable `/simplify`, and CodeRabbit review the integrated work package, where
+their broader perspective has the highest value.
 
 A ticket is shipped when its PR is merged into staging. A work package is
 shipped when the staging PR is merged into the final base and its tracker
@@ -28,7 +29,8 @@ Before editing:
    computes.
 2. Inspect branch, worktree, existing PRs, and tracker state. Preserve unrelated
    changes.
-3. Read [REVIEW.md](REVIEW.md) and record the review allocation.
+3. Read [REVIEW.md](REVIEW.md); for a ticket PR declare its review tier, and
+   record the allocation. Final integration uses the final matrix, not a tier.
 4. Route exactly one branch:
    - When a ticket remains, read [TICKET.md](TICKET.md) and ship only that ticket
      into staging.
