@@ -36,6 +36,8 @@ Copy `template.sh` to the target path. Replace the example stage with one `stage
 
 Hold the bar the template sets: open the URL before asking for its value, use `ask_secret` for anything secret, `write_env` every persisted value, `set_secret` only the values CI actually needs, and `confirm` before any irreversible action. The template refuses to write a repo-local env file unless Git confirms it is ignored, and refuses multiline env values; preserve those safety gates. Each `stage` clears the screen so only the current step is visible — keep a stage to one focused task so nothing the human needs scrolls away. Don't touch the library above the marker.
 
+The library fails closed. Missing input, a refused env write, unavailable GitHub authentication, or a failed GitHub write returns nonzero; with the template's `set -e`, a required helper called directly stops the wizard before it can report success. Never tolerate an `ask` or `ask_secret` failure. Only the output helpers (`write_env`, `set_secret`, and `set_var`) record an omission, so use `|| true` only when one of those writes is explicitly optional; `finish` then reports **Setup incomplete** and returns nonzero.
+
 ### 4. Verify and hand off
 
 - `bash -n <script>`; run `shellcheck` if available.
