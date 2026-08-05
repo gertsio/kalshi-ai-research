@@ -6,8 +6,8 @@ The goal is predictable agent behaviour: the same process on each run, not the s
 
 Before judging skill-writing concepts, read the canonical standard:
 
-- `.agents/skills/writing-great-skills/SKILL.md`
-- `.agents/skills/writing-great-skills/GLOSSARY.md`
+- `.agents/skills/writing-for-agents/SKILL.md`
+- `.agents/skills/writing-for-agents/SKILL-MECHANICS.md`
 
 This file only scopes how the Mega Review Skill Quality lens uses that standard. Do not treat the summaries below as a replacement source of truth.
 
@@ -31,6 +31,8 @@ Using the canonical standard, check whether the skill should be model-invoked or
 - Use model-invoked when the agent must reach it autonomously or another skill must reach it.
 - Use user-invoked when only the human should choose it.
 - If user-invoked skills are multiplying, consider a router skill.
+
+Require the Claude `SKILL.md` frontmatter and Codex `agents/openai.yaml` policy to agree on that choice.
 
 For model-invoked skills, the description should front-load the leading word and list distinct trigger branches without synonym padding.
 
