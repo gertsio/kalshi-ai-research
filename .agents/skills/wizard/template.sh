@@ -34,6 +34,16 @@ WRITTEN_ENV=()    # KEYs written to ENV_FILE this run
 WRITTEN_SECRET=() # secret NAMEs set this run
 SKIPPED=()        # things we couldn't do (e.g. gh missing)
 
+# Bind repository-scoped writes to the repository containing this wizard, not
+# to whichever directory the caller happened to launch it from. Authors may set
+# WIZARD_ROOT before launch when the script intentionally lives elsewhere.
+_WIZARD_SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+_WIZARD_ROOT_CANDIDATE="${WIZARD_ROOT:-$_WIZARD_SCRIPT_DIR}"
+if ! WIZARD_ROOT=$(git -C "$_WIZARD_ROOT_CANDIDATE" rev-parse --show-toplevel 2>/dev/null); then
+  WIZARD_ROOT=""
+fi
+readonly WIZARD_ROOT
+
 # _clear — wipe the terminal so only the current step is on screen. No-op when
 # output isn't a terminal, so piped logs stay readable.
 _clear() {
@@ -206,10 +216,23 @@ write_env() {
   printf '  %s✓ wrote%s %s → %s\n' "$GREEN" "$RESET" "$key" "$ENV_FILE"
 }
 
+# _github_repo — resolve [HOST/]OWNER/REPO from the validated wizard root.
+_github_repo() {
+  [[ -n "$WIZARD_ROOT" ]] || return 1
+  (
+    unset GH_REPO
+    cd -- "$WIZARD_ROOT"
+    # shellcheck disable=SC2016 # jq expands $host, not the shell.
+    gh repo view --json nameWithOwner,url --jq \
+      '(.url | sub("^https?://"; "") | split("/")[0]) as $host | if $host == "github.com" then .nameWithOwner else "\($host)/\(.nameWithOwner)" end'
+  )
+}
+
 # set_secret NAME VALUE — set a GitHub Actions repo secret via gh. Records and
-# returns failure if gh is unavailable, unauthenticated, or the write fails.
+# returns failure if gh is unavailable, unauthenticated, the repository cannot
+# be resolved from WIZARD_ROOT, or the write fails.
 set_secret() {
-  local name="$1" value="$2"
+  local name="$1" value="$2" repo
   if [[ -z "$value" ]]; then
     SKIPPED+=("GitHub secret $name (captured value was empty)")
     warn "refusing to set empty GitHub secret $name"
@@ -220,7 +243,12 @@ set_secret() {
     warn "couldn't set GitHub secret $name — gh is unavailable or unauthenticated"
     return 1
   fi
-  if ! printf '%s' "$value" | gh secret set "$name" >/dev/null 2>&1; then
+  if ! repo=$(_github_repo); then
+    SKIPPED+=("GitHub secret $name (couldn't resolve the wizard repository)")
+    warn "couldn't set GitHub secret $name — wizard repository is unavailable"
+    return 1
+  fi
+  if ! printf '%s' "$value" | gh secret set "$name" --repo "$repo" >/dev/null 2>&1; then
     SKIPPED+=("GitHub secret $name (gh write failed)")
     warn "couldn't set GitHub secret $name — gh write failed"
     return 1
@@ -231,7 +259,7 @@ set_secret() {
 
 # set_var NAME VALUE — set a GitHub Actions repo variable (non-secret).
 set_var() {
-  local name="$1" value="$2"
+  local name="$1" value="$2" repo
   if [[ -z "$value" ]]; then
     SKIPPED+=("GitHub variable $name (captured value was empty)")
     warn "refusing to set empty GitHub variable $name"
@@ -242,7 +270,12 @@ set_var() {
     warn "couldn't set GitHub variable $name — gh is unavailable or unauthenticated"
     return 1
   fi
-  if ! gh variable set "$name" --body "$value" >/dev/null 2>&1; then
+  if ! repo=$(_github_repo); then
+    SKIPPED+=("GitHub variable $name (couldn't resolve the wizard repository)")
+    warn "couldn't set GitHub variable $name — wizard repository is unavailable"
+    return 1
+  fi
+  if ! gh variable set "$name" --body "$value" --repo "$repo" >/dev/null 2>&1; then
     SKIPPED+=("GitHub variable $name (gh write failed)")
     warn "couldn't set GitHub variable $name — gh write failed"
     return 1
