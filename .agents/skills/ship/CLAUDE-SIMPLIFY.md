@@ -1,37 +1,43 @@
-# Claude `/simplify`
+# Fable 5 `/simplify`
 
-Capability: Claude Code with the `/simplify` command.
+Capability: Claude Code with model alias `fable`, CLI effort `high`, and the
+`/simplify` command.
 
-Run one observable, bounded pass from the ticket worktree. Substitute the
-resolved integration branch before running:
+When allocated by [REVIEW.md](REVIEW.md), run one observable pass
+in a temporary detached worktree at the fixed staging head. A concurrent
+read-only review cannot observe or race edits in this isolated worktree.
+
+Before running, verify `claude` is installed, `claude auth status` reports a
+logged-in account, and `claude --help` advertises the `fable` model alias plus
+`--effort`, `--permission-mode`, `--output-format`, and
+`--no-session-persistence`.
+
+Substitute the resolved final base, fixed staging head, and isolated worktree:
 
 ```bash
 run_id="$(git rev-parse --short HEAD)-$(date +%Y%m%d%H%M%S)"
-base_ref="<resolved-integration-branch>"
+base_ref="<resolved-final-base>"
+staging_head="<fixed-staging-head>"
+simplify_worktree="<temporary-detached-worktree-at-staging-head>"
+cd "$simplify_worktree"
 claude --permission-mode acceptEdits \
+  --model fable \
+  --effort high \
   --verbose \
   --output-format stream-json \
-  --debug-file "/tmp/claude-simplify-${run_id}.debug.log" \
-  -p "/simplify Review only this ticket's diff against ${base_ref}. Use one bounded pass and return an explicit no-op, summary, or inspectable diff." \
-  > "/tmp/claude-simplify-${run_id}.jsonl" \
-  2> "/tmp/claude-simplify-${run_id}.stderr.log"
+  --no-session-persistence \
+  --debug-file "/tmp/fable-simplify-${run_id}.debug.log" \
+  -p "/simplify Review the complete integrated diff against ${base_ref} at fixed head ${staging_head}. This is an experimental prototype: remove accidental complexity, speculative edge cases, redundant validation, excessive tests, shallow abstractions, and compatibility residue while preserving accepted contracts, safety boundaries, and observable behavior. Use one bounded pass and return an explicit no-op, summary, or inspectable diff." \
+  > "/tmp/fable-simplify-${run_id}.jsonl" \
+  2> "/tmp/fable-simplify-${run_id}.stderr.log"
 claude_exit=$?
 ```
 
-Claude completed when it produced any one of:
+Inspect the artifacts and isolated diff. Port only coherent,
+behavior-preserving simplifications into staging;
+leave the temporary worktree uncommitted. Rejected edits receive concise
+rationales. Remove the temporary worktree only after its result and diff have
+been captured.
 
-- a usable JSONL result or summary;
-- an explicit no-op;
-- an inspectable, coherent worktree diff plus JSONL evidence that Claude finished
-  its edit phase rather than aborting mid-edit.
-
-Completion and acceptance are separate. Inspect the artifacts and diff. Accept
-only behavior-preserving simplifications and revert rejected edits. The main
-skill owns the post-review gate.
-
-A wrapper, shell assignment, logging, or post-exit failure does not invalidate
-an already usable Claude result. The process exit code alone is not the
-completion criterion. Rerun only when Claude itself produced no usable result;
-inspect and correct the invocation, authentication, or worktree cause first.
-Use the shared retry and unavailable-reviewer budget in REVIEW-BUDGET.md. Do not
-rerun merely to obtain a clean wrapper exit.
+Judge completion with the usable-pass definition and retry budget in
+[REVIEW.md](REVIEW.md).

@@ -1,0 +1,20 @@
+{
+  "schema_version": 2,
+  "spec": "001-<spec-slug>",
+  "tickets": [
+    {
+      "id": "001",
+      "title": "<Ticket Title>",
+      "file": "tickets/001-<ticket-slug>.md",
+      "status": "ready",
+      "blocked_by": []
+    },
+    {
+      "id": "002",
+      "title": "<Ticket Title>",
+      "file": "tickets/002-<ticket-slug>.md",
+      "status": "ready",
+      "blocked_by": ["001"]
+    }
+  ]
+}

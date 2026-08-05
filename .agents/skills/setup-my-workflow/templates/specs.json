@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "workstream": "<workstream-slug>",
+  "title": "<Workstream Title>",
+  "description": "Local spec packages and ticket queues for <repo purpose>.",
+  "specs": [
+    {
+      "id": "001",
+      "title": "<Spec Title>",
+      "file": "001-<spec-slug>/spec.md",
+      "status": "draft"
+    }
+  ]
+}
