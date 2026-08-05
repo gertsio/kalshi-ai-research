@@ -2,7 +2,7 @@
 
 A **phase** is a chunk of work inside a task — the grilling, the implementation, the QA. The definition is fuzzy on purpose: a phase ends when you think *"ok, we're done with that"*.
 
-The **phase boundary** is the gap between two phases, and it is the only place this decision belongs. Mid-phase there is no decision to make — continue, or split the work that's left into subagents. Summarizing mid-phase makes the agent lose the thread.
+The **phase boundary** is the gap between two phases, and it is the only place this decision belongs. Mid-phase, continue or split the work that's left into subagents. Use `/handoff` mid-phase only for work that genuinely transfers to another task, harness, directory, colleague, or side task. Summarizing mid-phase makes the agent lose the thread.
 
 ## The five options
 
@@ -18,7 +18,7 @@ The **phase boundary** is the gap between two phases, and it is the only place t
 
 Work top to bottom at the boundary. The first **yes** wins.
 
-**1. Can you continue in this task?** Two things make the answer yes: the next phase needs this phase as a **primary source**, or you have enough [smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone) left for the next phase to fit reliably. Grilling → implementation is the standard yes: the implementation wants the reasoning verbatim, not a summary of it. Continue costs nothing and loses nothing, so rule it out before anything else.
+**1. Can you continue in this task?** Two things make the answer yes: the next phase needs this phase as a **primary source**, or you have enough [smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone) left for the next phase to fit reliably. Grilling → implementation is the standard yes: the implementation wants the reasoning verbatim, not a summary of it. Continue costs nothing and loses nothing, so consider it before the other options.
 
 **2. Is the context irrelevant to what comes next?** Is everything in this task — the exploration, the decisions, the dead ends — disposable? If so, **start fresh** using the harness's new-task or clear-context control. It is the cheapest move on the board: it takes no time and hands back the whole window. The old task remains available as history.
 
@@ -27,6 +27,7 @@ The cost of getting this wrong is one-way. Clear a *relevant* context and you lo
 **3. Do you need to hand off?** `/handoff` is narrow. You need it only when you are:
 
 - swapping to a **new harness** (Claude → Codex),
+- transferring the work to a **different task** that cannot inherit this context,
 - moving to a **new directory** or repo,
 - sending the work to a **colleague**,
 - or forking a side task you found **mid-phase** without derailing what you're doing.
@@ -35,7 +36,7 @@ That list is the whole clause. What `/handoff` buys is **portability** — a fil
 
 **4. Can the task be done AFK?** Is it scoped tightly enough to run with you away from the keyboard, no steering? Then send it to a **subagent** and leave this task untouched. Automated review is the standard case: the agent reads the diff and reports, and you aren't needed while it does.
 
-**5. Otherwise, use a summarized continuation.** Relevant context, same harness, same directory, and you need to stay in the loop — this is where the tree lands, and it lands here often. Use the harness's compact or summarized-continuation control, and tell it what the next phase needs. If the harness has no such control, use `/handoff` as the portable fallback.
+**5. Otherwise, use a summarized continuation.** Relevant context, same harness, same directory, and you need to stay in the loop — this is where the tree lands, and it lands here often. Use the harness's compact or summarized-continuation control, and tell it what the next phase needs. If the harness has no such control, transfer the work with `/handoff` to a different task that cannot inherit this context — the explicit portability case in question 3, not a generic fallback.
 
 Summarized continuation is the **default, not the first reach**. It sits at the bottom because the four questions above it are all cheaper or more precise. The failure mode when people start here is a fresh task that is confidently wrong about a decision the summary flattened.
 

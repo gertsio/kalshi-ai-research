@@ -13,8 +13,12 @@ set -euo pipefail
 # ──────────────────────────────────────────────────────────────────────────
 
 if [[ -t 1 ]] && command -v tput >/dev/null 2>&1 && [[ "$(tput colors 2>/dev/null || echo 0)" -ge 8 ]]; then
-  BOLD=$(tput bold); DIM=$(tput dim); RESET=$(tput sgr0)
-  BLUE=$(tput setaf 4); GREEN=$(tput setaf 2); YELLOW=$(tput setaf 3)
+  BOLD=$(tput bold 2>/dev/null || true)
+  DIM=$(tput dim 2>/dev/null || true)
+  RESET=$(tput sgr0 2>/dev/null || true)
+  BLUE=$(tput setaf 4 2>/dev/null || true)
+  GREEN=$(tput setaf 2 2>/dev/null || true)
+  YELLOW=$(tput setaf 3 2>/dev/null || true)
 else
   BOLD=""; DIM=""; RESET=""; BLUE=""; GREEN=""; YELLOW=""
 fi
@@ -34,7 +38,11 @@ SKIPPED=()        # things we couldn't do (e.g. gh missing)
 # output isn't a terminal, so piped logs stay readable.
 _clear() {
   [[ -t 1 ]] || return 0
-  if command -v tput >/dev/null 2>&1; then tput clear; else printf '\033[2J\033[3J\033[H'; fi
+  if command -v tput >/dev/null 2>&1; then
+    tput clear 2>/dev/null || printf '\033[2J\033[3J\033[H'
+  else
+    printf '\033[2J\033[3J\033[H'
+  fi
 }
 
 # banner "Title" — opening frame: what this wizard does and how long it takes.
@@ -97,7 +105,9 @@ confirm() {
 # _existing KEY — current value of KEY in ENV_FILE, if any.
 _existing() {
   [[ -f "$ENV_FILE" ]] || return 1
-  local line; line=$(grep -E "^${1}=" "$ENV_FILE" | tail -n1) || return 1
+  local lines line
+  lines=$(grep -E "^${1}=" "$ENV_FILE") || return 1
+  line=$(printf '%s\n' "$lines" | tail -n1)
   local value="${line#*=}"
   if [[ "$value" == \"*\" ]]; then
     value=${value:1:${#value}-2}
@@ -112,30 +122,59 @@ _existing() {
 # ask KEY "Prompt" — read a value into $KEY. Offers the existing .env value as
 # a default on re-runs (Enter keeps it). Visible input (non-secret).
 ask() {
-  local key="$1" prompt="$2" current input
-  current=$(_existing "$key" || true)
-  if [[ -n "$current" ]]; then
-    printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
-  else
-    printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
+  local key="$1" prompt="$2" current="" input="" has_current=false
+  if current=$(_existing "$key") && [[ -n "$current" ]]; then
+    has_current=true
   fi
-  read -r input || true
-  [[ -z "$input" && -n "$current" ]] && input="$current"
+  while :; do
+    if [[ "$has_current" == true ]]; then
+      printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
+    else
+      printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
+    fi
+    if ! IFS= read -r input; then
+      warn "no input available — run this wizard in an interactive terminal"
+      return 1
+    fi
+    if [[ -z "$input" && "$has_current" == true ]]; then
+      input="$current"
+      break
+    fi
+    [[ -n "$input" ]] && break
+    warn "a value is required"
+  done
   printf -v "$key" '%s' "$input"
 }
 
 # ask_secret KEY "Prompt" — like ask, but input is hidden.
 ask_secret() {
-  local key="$1" prompt="$2" current input
-  current=$(_existing "$key" || true)
-  if [[ -n "$current" ]]; then
-    printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
-  else
-    printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
+  local key="$1" prompt="$2" current="" input="" has_current=false
+  if [[ ! -t 0 ]]; then
+    warn "refusing to read a secret from non-terminal input"
+    return 1
   fi
-  read -rs input || true
-  printf '\n'
-  [[ -z "$input" && -n "$current" ]] && input="$current"
+  if current=$(_existing "$key") && [[ -n "$current" ]]; then
+    has_current=true
+  fi
+  while :; do
+    if [[ "$has_current" == true ]]; then
+      printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
+    else
+      printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
+    fi
+    if ! IFS= read -rs input; then
+      printf '\n'
+      warn "secret input ended before a value was captured"
+      return 1
+    fi
+    printf '\n'
+    if [[ -z "$input" && "$has_current" == true ]]; then
+      input="$current"
+      break
+    fi
+    [[ -n "$input" ]] && break
+    warn "a value is required"
+  done
   printf -v "$key" '%s' "$input"
 }
 
@@ -146,10 +185,12 @@ write_env() {
   if git rev-parse --is-inside-work-tree >/dev/null 2>&1 \
     && ! git check-ignore -q -- "$ENV_FILE"; then
     warn "refusing to write $ENV_FILE — add it to .gitignore first"
+    SKIPPED+=("$key in $ENV_FILE ($ENV_FILE is not git-ignored)")
     return 1
   fi
   if [[ "$value" == *$'\n'* || "$value" == *$'\r'* ]]; then
     warn "refusing to write multiline value for $key to $ENV_FILE"
+    SKIPPED+=("$key in $ENV_FILE (value contained a newline)")
     return 1
   fi
   encoded=${value//\\/\\\\}
@@ -165,45 +206,67 @@ write_env() {
   printf '  %s✓ wrote%s %s → %s\n' "$GREEN" "$RESET" "$key" "$ENV_FILE"
 }
 
-# set_secret NAME VALUE — set a GitHub Actions repo secret via gh. Falls back
-# to a warning (and records it) if gh is unavailable or unauthenticated.
+# set_secret NAME VALUE — set a GitHub Actions repo secret via gh. Records and
+# returns failure if gh is unavailable, unauthenticated, or the write fails.
 set_secret() {
   local name="$1" value="$2"
-  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
-    if printf '%s' "$value" | gh secret set "$name" >/dev/null 2>&1; then
-      WRITTEN_SECRET+=("$name")
-      printf '  %s✓ set%s GitHub secret %s\n' "$GREEN" "$RESET" "$name"
-      return
-    fi
+  if [[ -z "$value" ]]; then
+    SKIPPED+=("GitHub secret $name (captured value was empty)")
+    warn "refusing to set empty GitHub secret $name"
+    return 1
   fi
-  SKIPPED+=("GitHub secret $name (set it manually: gh secret set $name)")
-  warn "skipped GitHub secret $name — gh not ready; set it later"
+  if ! command -v gh >/dev/null 2>&1 || ! gh auth status >/dev/null 2>&1; then
+    SKIPPED+=("GitHub secret $name (authenticate gh, then set it manually)")
+    warn "couldn't set GitHub secret $name — gh is unavailable or unauthenticated"
+    return 1
+  fi
+  if ! printf '%s' "$value" | gh secret set "$name" >/dev/null 2>&1; then
+    SKIPPED+=("GitHub secret $name (gh write failed)")
+    warn "couldn't set GitHub secret $name — gh write failed"
+    return 1
+  fi
+  WRITTEN_SECRET+=("$name")
+  printf '  %s✓ set%s GitHub secret %s\n' "$GREEN" "$RESET" "$name"
 }
 
 # set_var NAME VALUE — set a GitHub Actions repo variable (non-secret).
 set_var() {
   local name="$1" value="$2"
-  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
-    if gh variable set "$name" --body "$value" >/dev/null 2>&1; then
-      printf '  %s✓ set%s GitHub variable %s\n' "$GREEN" "$RESET" "$name"
-      return
-    fi
+  if [[ -z "$value" ]]; then
+    SKIPPED+=("GitHub variable $name (captured value was empty)")
+    warn "refusing to set empty GitHub variable $name"
+    return 1
   fi
-  SKIPPED+=("GitHub variable $name")
-  warn "skipped GitHub variable $name — gh not ready; set it later"
+  if ! command -v gh >/dev/null 2>&1 || ! gh auth status >/dev/null 2>&1; then
+    SKIPPED+=("GitHub variable $name (authenticate gh, then set it manually)")
+    warn "couldn't set GitHub variable $name — gh is unavailable or unauthenticated"
+    return 1
+  fi
+  if ! gh variable set "$name" --body "$value" >/dev/null 2>&1; then
+    SKIPPED+=("GitHub variable $name (gh write failed)")
+    warn "couldn't set GitHub variable $name — gh write failed"
+    return 1
+  fi
+  printf '  %s✓ set%s GitHub variable %s\n' "$GREEN" "$RESET" "$name"
 }
 
 # finish — clear, then a closing summary of everything configured.
 finish() {
   _clear
-  printf '\n%s%s  ✓ Setup complete%s\n' "$BOLD" "$GREEN" "$RESET"
+  local incomplete=${#SKIPPED[@]}
+  if (( incomplete )); then
+    printf '\n%s%s  ! Setup incomplete%s\n' "$BOLD" "$YELLOW" "$RESET"
+  else
+    printf '\n%s%s  ✓ Setup complete%s\n' "$BOLD" "$GREEN" "$RESET"
+  fi
   (( ${#WRITTEN_ENV[@]} ))    && note "wrote ${#WRITTEN_ENV[@]} value(s) to $ENV_FILE: ${WRITTEN_ENV[*]}"
   (( ${#WRITTEN_SECRET[@]} )) && note "set ${#WRITTEN_SECRET[@]} GitHub secret(s): ${WRITTEN_SECRET[*]}"
-  if (( ${#SKIPPED[@]} )); then
+  if (( incomplete )); then
     printf '\n'; warn "still to do by hand:"
     for s in "${SKIPPED[@]}"; do note "  - $s"; done
   fi
   printf '\n'
+  (( incomplete == 0 ))
 }
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -226,6 +289,7 @@ step "Click 'Reveal test key' on the Secret key row, then copy it."
 ask_secret STRIPE_SECRET_KEY "Paste the secret key:"
 write_env STRIPE_PUBLISHABLE_KEY "$STRIPE_PUBLISHABLE_KEY"
 write_env STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY"
+# Verify this name matches a corresponding secrets.* reference in CI.
 set_secret STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY"   # CI needs this one
 # ──────────────────────────────────────────────────────────────────────────
 

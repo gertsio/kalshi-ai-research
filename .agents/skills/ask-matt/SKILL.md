@@ -20,7 +20,7 @@ The route most work travels. You have an idea and want it built.
    - **`/prototype`** to answer the question with throwaway code,
    - **`/handoff`** back what you learned, and reference it from the original idea thread.
 3. **Branch — is this a multi-task build?**
-   - **Yes** → **`/to-spec`** (turn the thread into a spec), then **`/to-tickets`** to split it into tracer-bullet tickets, each declaring its **blocking edges**. On a local tracker that's one file per ticket under `.scratch/<feature>/issues/`, worked blockers-first by hand; on a real tracker the edges become native blocking links, so any ticket whose blockers are done can be grabbed — kick off **`/ship`** per ticket, starting each in a fresh task or cleared context. Each ticket is self-contained, so the last one's context is disposable.
+   - **Yes** → **`/to-spec`** (turn the thread into a spec), then **`/to-tickets`** to split it into tracer-bullet tickets, each declaring its **blocking edges**. Follow `docs/agents/issue-tracker.md` for ticket storage and blocker semantics; a remote tracker may use native blocking links, while a local tracker records the same edges in files. Kick off **`/ship`** per ticket, starting each in a fresh task or cleared context. Each ticket is self-contained, so the last one's context is disposable.
    - **No** → **`/ship`** right here, in the same context window.
 
    Either way, **`/ship`** builds each issue by driving **`/tdd`** internally — one red-green slice at a time — then closes out by running **`/code-review`**, a two-axis review (Standards + Spec) of the diff, before committing. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec, and **`/code-review`** on its own whenever you want to review a branch or PR against a fixed point.
@@ -64,11 +64,11 @@ A **phase** is a chunk of work inside a task — the grilling, the implementatio
 
 - **Continue** — stay put. Costs nothing, loses nothing.
 - **Start fresh** — open a new task or clear the current context, when nothing here matters to what's next.
-- **`/handoff`** — write a portable markdown file. Narrow: only for a **new harness**, a **new directory**, a **colleague**, or forking a side task **mid-phase**. What it buys is portability.
+- **`/handoff`** — write a portable markdown file. Narrow: only when work genuinely transfers to another **task**, **harness**, **directory**, **colleague**, or side task found **mid-phase**. What it buys is portability.
 - **Subagent** — send a tightly-scoped task to its own window and get a report back.
 - **Summarized continuation** — compact this task or continue in a new one seeded by a summary. The **default**, at the bottom of the tree rather than the first reach.
 
-Read [PHASE-BOUNDARIES.md](PHASE-BOUNDARIES.md) for the ordered tree — the five questions, the reasoning behind each branch, and why the primary-source cost makes **Continue** the one to rule out first. Make the decision **at** a boundary; mid-phase, continue or split the rest into subagents.
+Read [PHASE-BOUNDARIES.md](PHASE-BOUNDARIES.md) for the ordered tree — the five questions, the reasoning behind each branch, and why the primary-source cost makes **Continue** the option to consider first. Make the decision **at** a boundary; mid-phase, continue or split the rest into subagents, except when work genuinely transfers and needs a portable `/handoff`.
 
 ## Standalone
 
